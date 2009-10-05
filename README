@@ -1,0 +1,76 @@
+[概要]
+Doarは、DoubleArrayの構築・検索を行うためのC++ライブラリです。
+
+現在(2009/10/06)で実装されている機能は以下の通りです。
+ ・ソート済みのキーセットから、DoubleArrayを構築し、ファイルに保存する  ※ キー数の上限は200万程度
+ ・上で作成したDoubleArrayデータから、キーを検索する
+ ・各キーを、0から始まるユニークなIDにマッピング
+
+
+[環境]
+・現在(2009/10/06)は、unix,g++,32bit(sizeof(int)==4)、環境を前提としている
+
+
+[使い方]
+・makeでサンプルコマンドをコンパイル
+　・mkdoar:    DoubleArray構築コマンド
+　・doar:      簡易検索コマンド
+　・doar_test: 構築したDoubleArrayのテスト & ベンチマークコマンド
+・具体的な使い方は、src/comman/以下のファイルを参照
+
+
+[簡易API]
+namespace Doar {
+  //=== ファイル: src/doar/builder.h ===
+  class Builder {
+    // 引数のファイル(ソート済み)から、DoubleArrayを構築する
+    bool build(const char* filepath);
+    // 引数の文字列配列(ソート済み)から、DoubleArrayを構築する
+    bool build(const char** strs, unsigned str_count);
+    
+    // 引数のファイルにDoubleArrayを保存する
+    bool save(const char* filepath);    
+  };
+
+
+  //=== ファイル: src/doar/searcher.h ===
+  class Searcher {
+    // DoubleArrayを引数のファイルから読み込む
+    Searcher(cosnt char* filepath);
+
+    // DoubleArrayに格納されているキー数を取得する
+    unsigned size() const;
+
+
+    // キーを検索する
+    // 見つかった場合はそのIDを、見つからなかった場合はSearcher::NOT_FOUNDを返す
+    ID search(const char* key) const;
+
+    // キーを検索する
+    // 見つかった場合はそのIDを、見つからなかった場合はSearcher::NOT_FOUNDを返す
+    // node_idxには、最後に辿ったDoubleArrayのノード番号がセットされる
+    ID search(const char* key, NodeIndex& node_idx) const;
+
+    // キーを検索する (common prefix search?)
+    // 見つかった場合はそのIDを、見つからなかった場合はSearcher::NOT_FOUNDを返す
+    // 探索の途中で、keyの部分文字列が見つかった場合は、Searcher::Logの中に、見つかったkeyの位置とIDが格納される。
+    ID search(cosnt char* key, Log& log, NodeIndex start_node_idx=0) const;
+
+    // 前方一致検索 (common prefix searchではない)
+    // 先頭にkeyを含むキーを検索する
+    // 先頭にkeyを含むキーがある場合はtrueを、無い場合はfalseを返す
+    // Searcher::Rangeには、前方一致するキー群の初めのID(range.begin)と最後のID+1(range.end)が格納される
+    bool prefix_search(const char* key, Range& range, NodeIndex start_node_idx=0) const;
+
+    struct Range { ID begin; ID end };
+
+    struct LOG_ELEMENT { unsigned key_pos; ID id; };
+    typedef std::vector<LOG_ELEMENT> Log;
+  };
+}
+
+
+[TODO]
+・キー数の制限をなくす(or 数千万個程度は扱えるようにする)
+・要素の動的更新(追加・削除)に対応  ※ namespaceは現状のものとは分ける?
+・ポータビリティ向上
