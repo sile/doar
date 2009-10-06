@@ -5,7 +5,7 @@
 #include "key_stream.h"
 #include "node.h"
 #include "../util/mmap_t.h"
-#include <iostream>
+
 namespace Doar {
   class Searcher {
   public:
