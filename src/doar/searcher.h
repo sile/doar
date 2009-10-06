@@ -5,7 +5,7 @@
 #include "key_stream.h"
 #include "node.h"
 #include "../util/mmap_t.h"
-
+#include <iostream>
 namespace Doar {
   class Searcher {
   public:
@@ -102,9 +102,10 @@ namespace Doar {
 	    continue;
 	  }
 	  
-	  if(key_exists(in, next)) {
+	  unsigned len;
+	  if(key_including(in, next, len)) {
 	    if(!in.eos())
-	      log.push_back(LOG_ELEMENT(key_pos + strlen(in.rest()-1), next.tail_index()));
+	      log.push_back(LOG_ELEMENT(key_pos+len+1, next.tail_index()));
 	    return next.tail_index();
 	  }
 	}
@@ -154,6 +155,11 @@ namespace Doar {
     }
     bool key_included(const KeyStream in, const Node n) const {
       return strncmp(in.rest(), tail+tind[n.tail_index()], strlen(in.rest()))==0;
+    }
+    int key_including(const KeyStream in, const Node n, unsigned& len) const {
+      const char* ptr=tail+tind[n.tail_index()];
+      len = strlen(ptr);
+      return in.eos() || strncmp(in.rest(), ptr, len)==0;
     }
     
     int first_id (NodeIndex idx) const {
