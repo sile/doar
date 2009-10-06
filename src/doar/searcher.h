@@ -30,8 +30,9 @@ namespace Doar {
 
       // TODO: format check
       memcpy(&h,mm.ptr,sizeof(header));
-      nodes = reinterpret_cast<const Node*>(static_cast<char*>(mm.ptr)+sizeof(header));
-      tind = reinterpret_cast<const unsigned*>(nodes+h.node_size);
+      base = reinterpret_cast<const Node*>(static_cast<char*>(mm.ptr)+sizeof(header));
+      chck = reinterpret_cast<const unsigned char*>(base+h.node_size);
+      tind = reinterpret_cast<const unsigned*>(chck+h.node_size);
       tail = reinterpret_cast<const char*>(tind + h.tind_size);
     }
 
@@ -40,12 +41,12 @@ namespace Doar {
     ID search(const char* key) const {
       KeyStream in(key); 
       
-      Node node=nodes[0];
+      Node node=base[0];
       for(Code cd=in.read();; cd=in.read()) {
 	const NodeIndex idx = node.next_index(cd);
-	const Node next = nodes[idx];
+	const Node next = base[idx];
 	
-	if(cd==next.chck()){
+	if(cd==chck[idx]){
 	  if(!next.is_terminal()){
 	    node=next;
 	    continue;
@@ -61,12 +62,12 @@ namespace Doar {
     ID search(const char* key, NodeIndex& node_idx) const {
       KeyStream in(key); 
       
-      Node node=nodes[node_idx];
+      Node node=base[node_idx];
       for(Code cd=in.read();; cd=in.read()) {
 	const NodeIndex idx = node.next_index(cd);
-	const Node next = nodes[idx];
+	const Node next = base[idx];
 	
-	if(cd==next.chck()){
+	if(cd==chck[idx]){
 	  if(!next.is_terminal()){
 	    node_idx = idx;
 	    node=next;
@@ -84,19 +85,20 @@ namespace Doar {
       KeyStream in(key); 
       
       unsigned key_pos=0;
-      Node node=nodes[start_node_idx];
+      Node node=base[start_node_idx];
       for(Code cd=in.read();; cd=in.read(), key_pos++) {
 	const NodeIndex idx = node.next_index(cd);
-	const Node next = nodes[idx];
+	const Node next = base[idx];
 	
 	
 	{
-	  const Node end_node = nodes[node.next_index(1)]; 
-	  if(1==end_node.chck())
+	  NodeIndex end_idx=node.next_index(1);
+	  const Node end_node = base[end_idx]; 
+	  if(1==chck[end_idx])
 	    log.push_back(LOG_ELEMENT(key_pos, end_node.tail_index()));
 	}
 	
-	if(cd==next.chck()){
+	if(cd==chck[idx]){
 	  if(!next.is_terminal()){
 	    node=next;
 	    continue;
@@ -117,7 +119,7 @@ namespace Doar {
       KeyStream in(key); 
       
       NodeIndex idx=start_node_idx;
-      Node node=nodes[idx];
+      Node node=base[idx];
       for(Code cd=in.read();; cd=in.read()) {
 	if(cd==1) {
 	  range.begin = first_id(idx);
@@ -129,9 +131,9 @@ namespace Doar {
 	}
 
 	idx = node.next_index(cd);
-	const Node next = nodes[idx];
+	const Node next = base[idx];
 	
-	if(cd==next.chck()){
+	if(cd==chck[idx]){
 	  if(!next.is_terminal()){
 	    node=next;
 	    continue;
@@ -163,30 +165,30 @@ namespace Doar {
     }
     
     int first_id (NodeIndex idx) const {
-      NodeIndex base = nodes[idx].base();
+      NodeIndex base_idx = base[idx].base();
        
       for(Code cd=1; cd <= KeyStream::MAX_CODE; cd++) {
-	const Node next = nodes[base+cd];
+	const Node next = base[base_idx+cd];
 	
-	if(cd==next.chck())
+	if(cd==chck[base_idx+cd])
 	  if(next.is_terminal())
 	    return next.tail_index();
 	  else
-	    cd=0,base=next.base();
+	    cd=0,base_idx=next.base();
       }
       return -1;
     }
     int last_id (NodeIndex idx) const {
-      NodeIndex base = nodes[idx].base();
+      NodeIndex base_idx = base[idx].base();
       
       for(Code cd=KeyStream::MAX_CODE; cd > 0; cd--) {
-	const Node next = nodes[base+cd];
+	const Node next = base[base_idx+cd];
 	
-	if(cd==next.chck())
+	if(cd==chck[base_idx+cd])
 	  if(next.is_terminal())
 	    return next.tail_index();
 	  else
-	    cd=KeyStream::MAX_CODE+1,base=next.base();
+	    cd=KeyStream::MAX_CODE+1,base_idx=next.base();
       }
       return -1;
     }
@@ -194,9 +196,10 @@ namespace Doar {
   private:
     const mmap_t mm;
     header h;
-    const Node* nodes;
-    const unsigned* tind;
-    const char* tail;
+    const Node*          base;
+    const unsigned char* chck;
+    const unsigned*      tind;
+    const char*          tail;
   };
 }
 #endif

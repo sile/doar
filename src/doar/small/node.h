@@ -1,10 +1,11 @@
-#ifndef DOAR_NODE_H
-#define DOAR_NODE_H
+#ifndef DOAR_SMALLNODE_H
+#define DOAR_SMALLNODE_H
 
 #include <stdexcept>
 #include <cassert>
 
 namespace Doar{
+  namespace Small {
   struct Node {
     // 0b10000000 00000000 00000000 00000000  : TAIL配列へのindexかどうかのフラグ
     // 0b01111111 11111111 11111111 00000000  : BASEの値
@@ -35,5 +36,6 @@ namespace Doar{
     void check_tail(TailIndex idx) const { assert(!(idx&0xFF800000)); }
     void check_chck(Code cd) const { assert(!(cd&0xFFFFFF00)); }
   };
+  }
 }
 #endif

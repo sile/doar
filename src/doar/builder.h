@@ -5,6 +5,7 @@
 #include "key_stream.h"
 #include "node_list.h"
 #include "node_allocator.h"
+#include "../util/read_line.h"
 
 namespace Doar {
   class Builder {
@@ -49,23 +50,25 @@ namespace Doar {
 
       header h={0,tind.size(),tail.size()};
       
-      for(int i=nodes.size()-1; i>=0; i--) 
-	if(!nodes[i].is_vacant()) {
+      for(int i=chck.size()-1; i>=0; i--) 
+	if(!chck[i]==0){
 	  h.node_size=i+1;
 	  break;
 	}
 
       // 範囲外アクセスを防ぐために調整する
       for(int i=0; i < h.node_size; i++) {
-	Node n = nodes[i];
-	if(!n.is_vacant() && !n.is_terminal())
+	Node n = base[i];
+	if(!chck[i]==0 && !n.is_terminal())
 	  if(n.base()+KeyStream::MAX_CODE >= h.node_size)
 	    h.node_size = n.base()+KeyStream::MAX_CODE;
       }
-      nodes.resize(h.node_size);
+      base.resize(h.node_size);
+      chck.resize(h.node_size);
       
       write(f,&h,sizeof(header));
-      write(f,nodes.data(),h.node_size*sizeof(Node));
+      write(f,base.data(),h.node_size*sizeof(Node));
+      write(f,chck.data(),h.node_size);
       write(f,tind.data(),h.tind_size*sizeof(unsigned));
       write(f,tail.data(),h.tail_size);
       close(f);
@@ -106,13 +109,13 @@ namespace Doar {
 
     NodeIndex set_node(Code code, NodeIndex prev, NodeIndex x_node) {
       NodeIndex next = x_node+code;
-      nodes.at(prev).set_base(x_node);
-      nodes.at(next).set_chck(code);
+      base.at(prev).set_base(x_node);
+      chck.at(next) = code;
       return next;
     }
 
     void insert_tail(KeyStream in, NodeIndex node) {
-      nodes.at(node).set_tail_index(tind.size());
+      base.at(node).set_tail_index(tind.size());
       if(in.eos()) {
 	tind.push_back(tail.size()-1); // 便宜的に、一つ前の'\0'を指すようにする
 	return;
@@ -186,7 +189,8 @@ namespace Doar {
     }
 
     void init() {
-      nodes.clear();
+      base.clear();
+      chck.clear();
       tind.clear();
       tail.clear();
       tail += '\0';
@@ -194,7 +198,8 @@ namespace Doar {
     }
 
   private:
-    NodeList nodes;
+    BaseList base;
+    ChckList chck;
     TindList tind;
     Tail     tail; 
   };
