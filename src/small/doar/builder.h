@@ -5,7 +5,6 @@
 #include "key_stream.h"
 #include "node_list.h"
 #include "node_allocator.h"
-#include "../util/read_line.h"
 
 namespace Doar {
   class Builder {
