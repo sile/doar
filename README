@@ -1,22 +1,22 @@
 [概要]
 Doarは、DoubleArrayの構築・検索を行うためのC++ライブラリです。
 
-現在(2009/10/06)で実装されている機能は以下の通りです。
- ・ソート済みのキーセットから、DoubleArrayを構築し、ファイルに保存する  ※ キー数の上限は200万程度
+現在(2009/10/08)で実装されている機能は以下の通りです。
+ ・ソート済みのキーセットから、DoubleArrayを構築し、ファイルに保存する
  ・上で作成したDoubleArrayデータから、キーを検索する
  ・各キーを、0から始まるユニークなIDにマッピング
 
 
 [環境]
-・現在(2009/10/06)は、unix,g++,32bit(sizeof(int)==4)、環境を前提としている
+・現在(2009/10/08)は、unix,32bit(sizeof(int)==4)、環境を前提としています
 
 
 [使い方]
 ・makeでサンプルコマンドをコンパイル
 　・mkdoar:    DoubleArray構築コマンド
-　・doar:      簡易検索コマンド
+　・doar:      簡易検索コマンド (通常検索, common-prefix検索)
 　・doar_test: 構築したDoubleArrayのテスト & ベンチマークコマンド
-・具体的な使い方は、src/comman/以下のファイルを参照
+・具体的な使い方は、src/comman/以下のファイルを参照してください
 
 
 [簡易API]
@@ -32,6 +32,14 @@ namespace Doar {
     bool save(const char* filepath);    
   };
 
+  //=== ファイル: src/doar/node.h ===
+  struct Node {
+    // IDを取得する
+    unsigned id() const;
+
+    // ノードが有効化どうかを返す
+    bool valid() const;
+  }
 
   //=== ファイル: src/doar/searcher.h ===
   class Searcher {
@@ -41,36 +49,33 @@ namespace Doar {
     // DoubleArrayに格納されているキー数を取得する
     unsigned size() const;
 
+    // ルートノードを取得する
+    Node root_node() const;
 
-    // キーを検索する
-    // 見つかった場合はそのIDを、見つからなかった場合はSearcher::NOT_FOUNDを返す
-    ID search(const char* key) const;
+    // キーに対応するNodeを探す
+    // 検索に失敗した場合は、Node.valid()==falseとなる
+    Node search(const char* key) const;
+    Node search(const char* key, Node root_node) const;
+    Node search(char* key, unsigned len) const;
+    Node search(char* key, unsigned len, Node root_node) const;
 
-    // キーを検索する
-    // 見つかった場合はそのIDを、見つからなかった場合はSearcher::NOT_FOUNDを返す
-    // node_idxには、最後に辿ったDoubleArrayのノード番号がセットされる
-    ID search(const char* key, NodeIndex& node_idx) const;
-
-    // キーを検索する (common prefix search?)
-    // 見つかった場合はそのIDを、見つからなかった場合はSearcher::NOT_FOUNDを返す
-    // 探索の途中で、keyの部分文字列が見つかった場合は、Searcher::Logの中に、見つかったkeyの位置とIDが格納される。
-    ID search(cosnt char* key, Log& log, NodeIndex start_node_idx=0) const;
-
-    // 前方一致検索 (common prefix searchではない)
-    // 先頭にkeyを含むキーを検索する
-    // 先頭にkeyを含むキーがある場合はtrueを、無い場合はfalseを返す
-    // Searcher::Rangeには、前方一致するキー群の初めのID(range.begin)と最後のID+1(range.end)が格納される
-    bool prefix_search(const char* key, Range& range, NodeIndex start_node_idx=0) const;
-
-    struct Range { ID begin; ID end };
-
-    struct LOG_ELEMENT { unsigned key_pos; ID id; };
-    typedef std::vector<LOG_ELEMENT> Log;
+    // common-prefix searchを行う
+    // キーに対応するNodeを返す
+    // searchメソッドとは異なり、キーの途中にに一致するノードがある場合は、そこで検索が中断される
+    // 検索は、key+key_offsetから開始される。また、key_offsetには最後に使われたキーの位置が格納される。
+    // 検索は、root_node以下のノードを対象に行われる。また、検索が中断された場合には、戻り値のNodeの親ノードが格納される。
+    // 検索に失敗した場合には、Node.valid()==falseとなる
+    // 一致する全てのノードが見つかった場合、root_node.valid()==falseとなる 
+    //   ※ 後者の場合、strlen(key)==key_offsetとは限らない
+    Node non_greedy_search(const char* key, unsigned& key_offset, Node& root_node) const;
+    
+    // parentの子ノードを、resultに集める
+    // 戻り値は、子ノードの数
+    unsigned children(Node parent, NodeList& result) const;
   };
 }
 
 
 [TODO]
-・キー数の制限をなくす(or 数千万個程度は扱えるようにする)
 ・要素の動的更新(追加・削除)に対応  ※ namespaceは現状のものとは分ける?
 ・ポータビリティ向上

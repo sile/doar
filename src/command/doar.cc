@@ -30,11 +30,11 @@ int main(int argc, char** argv) {
 	Doar::Node root_node = srch.root_node();
 	unsigned offset=0;
 	std::string key =  word.substr(0,word.size()-1);
-	while((node=srch.search_non_greedy(key.c_str(), offset, root_node)).valid()) {
-	  std::cout << " #"<<node.id()<<": "<<word.substr(0,offset)<<std::endl;	  
-	  if(root_node.valid()==false)
-	    break;
-	}
+	do{
+	  node=srch.search_non_greedy(key.c_str(), offset, root_node);
+	  if(node.valid())
+	    std::cout << " #"<<node.id()<<": "<<word.substr(0,offset)<<std::endl;	  
+	} while(root_node.valid());
       }
       
     default:

@@ -51,13 +51,16 @@ namespace Doar {
     Node search_non_greedy(const char* key, unsigned& key_offset, Node& root_node) const {
       assert(!root_node.is_terminal());
 
-      bool first=true;
       Node node = root_node;
+      root_node = Node::INVALID;
+
+      bool first=true;
       KeyStream in(key+key_offset);
-      for(Code cd=in.read();; cd=in.read(), root_node=node, key_offset++, first=false) {
+      for(Code cd=in.read();; cd=in.read(), key_offset++, first=false) {
 	if(!first && cd != 1) {
-	  const NodeIndex other_idx = root_node.next_index(1);
+	  const NodeIndex other_idx = node.next_index(1);
 	  if(1==chck[other_idx]) {
+	    root_node=node;
 	    return base[other_idx];
 	  }
 	}
@@ -65,15 +68,11 @@ namespace Doar {
 	const NodeIndex idx = node.next_index(cd);
 	node = base[idx];
 	
-	if(cd==chck[idx]) {
+	if(cd==chck[idx])
 	  if(!node.is_terminal())
 	    continue;
-
-	  if (key_including(in, node, key_offset)) {
-	    root_node=Node::INVALID;
+	  else if (key_including(in, node, key_offset))
 	    return node;
-	  }
-	}
 	return Node::INVALID;
       }
     }
