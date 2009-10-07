@@ -11,10 +11,10 @@ namespace Doar {
   typedef unsigned TailIndex;
   typedef unsigned Code;
   
-  typedef std::vector<Code>     CodeList;
-  typedef std::vector<unsigned> TindList;
-  typedef std::string           Tail;
-  typedef std::vector<Node>     NodeList; // XXX: 名前がかぶる
+  typedef std::vector<Code>      CodeList;
+  typedef std::vector<unsigned>  TindList;
+  typedef std::string            Tail;
+  typedef std::vector<NodeIndex> NodeIndexList;
 
   struct header {
     unsigned node_size; // BASE and CHECK array size

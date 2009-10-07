@@ -77,16 +77,19 @@ namespace Doar {
       }
     }
 
-    unsigned children(Node parent, NodeList& result) const {
+    unsigned children(Node parent, NodeIndexList& result) const {
       if(parent.is_terminal())
 	return 0;
       
       const NodeIndex base_idx = parent.base();
       for(Code cd=1; cd <= KeyStream::MAX_CODE; cd++)
 	if(cd==chck[base_idx+cd])
-	  result.push_back(base[base_idx+cd]);
+	  result.push_back(base_idx+cd);
       return result.size();
     } 
+
+    char get_arc(NodeIndex idx)  const { return chck[idx]-1; } // XXX: use KeyStream
+    Node get_node(NodeIndex idx) const { return base[idx]; }
 
     Node root_node() const { return base[0]; }
     unsigned size() const { return h.tind_size; }

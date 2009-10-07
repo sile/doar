@@ -59,7 +59,7 @@ namespace Doar {
     Node search(char* key, unsigned len) const;
     Node search(char* key, unsigned len, Node root_node) const;
 
-    // common-prefix searchを行う
+    // common-prefix searchを行うためのメソッド
     // キーに対応するNodeを返す
     // searchメソッドとは異なり、キーの途中にに一致するノードがある場合は、そこで検索が中断される
     // 検索は、key+key_offsetから開始される。また、key_offsetには最後に使われたキーの位置が格納される。
@@ -69,9 +69,14 @@ namespace Doar {
     //   ※ 後者の場合、strlen(key)==key_offsetとは限らない
     Node non_greedy_search(const char* key, unsigned& key_offset, Node& root_node) const;
     
-    // parentの子ノードを、resultに集める
+    // parentの子ノード(のindex)を、resultに集める
     // 戻り値は、子ノードの数
-    unsigned children(Node parent, NodeList& result) const;
+    unsigned children(Node parent, NodeIndexList& result) const;
+    
+    // idxから遷移に使用した文字を取得する
+    char get_arc(NodeIndex idx) const;
+    // idxからNodeを取得する
+    Node get_node(NodeIndex idx) const;
   };
 }
 
