@@ -5,7 +5,6 @@
 #include "key_stream.h"
 #include "node_list.h"
 #include "node_allocator.h"
-#include "../util/read_line.h"
 
 namespace Doar {
   class Builder {
@@ -16,9 +15,11 @@ namespace Doar {
       if(!keys)
 	return false;
       // TODO: sort check
-      
+      //
+
       init();
       build_impl(keys,alloca,0,keys.size(),0);
+
       return true;
     }
     bool build(const char** strs, unsigned str_count) {
@@ -46,7 +47,7 @@ namespace Doar {
       if(f==-1)
 	return false;
 
-      shrink_tail();
+      shrink_tail(); 
 
       header h={0,tind.size(),tail.size()};
       
@@ -83,7 +84,7 @@ namespace Doar {
 	insert_tail(keys[beg],root_idx);
 	return;
       }
-      
+
       std::vector<unsigned> end_list;
       CodeList cs;
       Code prev=0;
@@ -135,6 +136,7 @@ namespace Doar {
     };
     void shrink_tail() {
       std::vector<ShrinkRecord> terminal_indices;
+      std::vector<ShrinkRecord> tmps;
       terminal_indices.reserve(tind.size());
 
       for(unsigned i=0; i < tind.size(); i++)
@@ -147,14 +149,12 @@ namespace Doar {
       new_tail.reserve(tail.size()/2);
       new_tail += '\0';
 
-      int cnt=0;
       for(unsigned i=0; i < terminal_indices.size(); i++) {
 	const ShrinkRecord& p = terminal_indices[i];
 
 	TailIndex tail_idx = new_tail.size();
 	if(i>0 && can_share(terminal_indices[i-1], p)) {
 	  tail_idx -= p.tail_len+1; // +1は、末尾の'\0'分
-	  cnt++;
 	} else {
 	  new_tail += p.tail;
 	  new_tail += '\0';
@@ -170,7 +170,7 @@ namespace Doar {
       const char* rp = rgt.tail;
 
       for(int li=lft.tail_len-1, ri=rgt.tail_len-1;; li--, ri--) {
-	if(ri < 0)                return true;
+	if(ri < 0)                return true;  // MEMO: 先にriをチェックするのは重要
 	else if(li < 0)           return false;
 	else if(lp[li] != rp[ri]) return false;
       }

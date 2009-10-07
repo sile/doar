@@ -30,12 +30,17 @@ namespace Doar {
       return alloc_impl(prev, node);
     }
 
+    // MEMO: codesはソートされていることが前提
     NodeIndex x_check(const CodeList& codes) {
+      if(codes.size()==1)
+	return x_check_one(codes[0]);
+
       NodeIndex prev = 0;
       NodeIndex cur  = lnk[prev].next;
 
-      for(; cur!=0 && cur <= codes.front(); prev=cur, cur=lnk[cur].next); 
-      for(; cur!=0; prev=cur, cur=lnk[cur].next) {
+      for(; cur <= codes.front(); prev=cur, cur=lnk[cur].next) assert(cur); 
+      for(;; prev=cur, cur=lnk[cur].next) {
+	assert(cur);
 	NodeIndex x = cur-codes.front();
 	if(!bset[x] && can_allocate(cur, codes, x)) {
 	  bset[x].flip();
@@ -46,7 +51,15 @@ namespace Doar {
 	  return x;
 	}
       }
-      assert(false);
+    }
+    NodeIndex x_check_one(Code cd) {
+      NodeIndex cur = lnk[0].next;
+      NodeIndex x;
+      for(; cur <= cd; cur=lnk[cur].next)                 assert(cur); 
+      for(x=cur-cd; bset[x]; cur=lnk[cur].next, x=cur-cd) assert(cur);
+      bset[x].flip();
+      alloc(0,cur);
+      return x;
     }
 
   private:
