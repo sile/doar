@@ -88,7 +88,7 @@ namespace Doar {
       return result.size();
     } 
 
-    char get_arc(NodeIndex idx)  const { return chck[idx]-1; } // XXX: use KeyStream
+    char get_arc(NodeIndex idx)  const { return chck[idx]-1; } // XXX: use KeyStream.to_char
     Node get_node(NodeIndex idx) const { return base[idx]; }
 
     Node root_node() const { return base[0]; }
