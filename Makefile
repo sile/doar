@@ -2,7 +2,7 @@ DOAR=src/doar
 CMD=src/command
 HEADERS=${DOAR}/key_stream.h ${DOAR}/node_list.h ${DOAR}/node.h ${DOAR}/searcher.h ${DOAR}/types.h ${DOAR}/node_allocator.h ${DOAR}/builder.h
 
-all: bin/doar bin/mkdoar bin/doar_test
+all: bin/doar bin/mkdoar bin/doar_test bin/smkdoar bin/sdoar_test
 
 bin/doar: ${CMD}/doar.cc ${HEADERS}
 	g++ -O3 -o${@} ${CMD}/doar.cc
