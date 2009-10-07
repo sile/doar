@@ -16,53 +16,31 @@ int main(int argc, char** argv) {
 
   std::string word;
 
-  Doar::NodeIndex node_idx=0;
-  int level=0;
   while(getline(std::cin,word)) {
-    Doar::ID id;
+    Doar::Node node;
     
     if(word.empty()) {
-      std::cerr << "Please input: key or key+ or key* or key-" << std::endl;
+      std::cerr << "Please input 'KEY'(default search) or 'KEY+'(common prefix search)" << std::endl;
       continue;
     }
-
     switch(word[word.size()-1]) {
-    case '*': 
-      // prefix search
-      {
-	Doar::Searcher::Range range;
-	if(srch.prefix_search(word.substr(0,word.size()-1).c_str(),range))
-	  std::cout << " #"<<range.begin<<" <= "<<word<<" < "<<range.end<< std::endl;
-	level=node_idx=0;
-      }
-      break;
-    case '-':
-      // 
-      if((id=srch.search(word.substr(0,word.size()-1).c_str(),node_idx))!=srch.NOT_FOUND) {
-	for(int i=0; i < level; i++) 
-	  std::cout << "  ";
-	std::cout << " #"<<id<<": "<<word<<std::endl;
-	level++;
-      } else {
-	level=node_idx=0;
-      }
-      break;
-
     case '+':
       // common prefix search
       {
-	Doar::Searcher::Log log;
-	srch.search(word.substr(0,word.size()-1).c_str(),log);
-	for(int i=0; i < log.size(); i++)
-	  std::cout << " #"<<log[i].id<<": "<<word.substr(0,log[i].key_pos)<<std::endl;
-	level=node_idx=0;
+	Doar::Node root_node = srch.root_node();
+	unsigned offset=0;
+	std::string key =  word.substr(0,word.size()-1);
+	while((node=srch.search_non_greedy(key.c_str(), offset, root_node)).valid()) {
+	  std::cout << " #"<<node.id()<<": "<<word.substr(0,offset)<<std::endl;	  
+	  if(root_node.valid()==false)
+	    break;
+	}
       }
       
     default:
       // default search
-      if((id=srch.search(word.c_str()))!=srch.NOT_FOUND)
-	std::cout <<" #"<<id<<": "<<word<<std::endl;
-	level=node_idx=0;
+      if((node=srch.search(word.c_str())).valid())
+	std::cout <<" #"<<node.id()<<": "<<word<<std::endl;
     }
   }
   return 0;

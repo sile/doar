@@ -11,12 +11,12 @@ namespace Doar {
   // keyは'\0'終端文字列で、値が0xFFの文字を含むことはできない
   class KeyStream {
   public:
-    static const unsigned MAX_CODE = 0xFF;
+    // TODO: MIN_CODEも入れる?
+    static const unsigned MAX_CODE = 0xFF; // MEMO: キーとして有効な値は、0(終端) ~ MAX_CODE-1
 
   public:
     KeyStream(){}
     KeyStream(const char* key) : cur(key) {}
-    void set(const char* key) { cur = key; } // TODO: なくす
     
     Code read() { return static_cast<unsigned char>(*cur++)+1; }
     const char* rest() const { return cur; }

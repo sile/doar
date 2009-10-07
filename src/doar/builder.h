@@ -39,7 +39,8 @@ namespace Doar {
       //  tail-size: 4byte
       //  tind-size: 4byte
       // }
-      // node: node-size*4byte
+      // base: node-size*4byte
+      // chck: node-size
       // tind: tind-size*4byte
       // tail: tail-size
 

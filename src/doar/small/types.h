@@ -24,6 +24,11 @@ namespace Doar {
     unsigned tail_size; // TAIL array size
   };
   }
+
+  // XXX:
+  using Small::NodeIndex;
+  using Small::Code;
+  using Small::CodeList;
 }
 
 #endif

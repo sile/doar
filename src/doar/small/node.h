@@ -3,6 +3,7 @@
 
 #include <stdexcept>
 #include <cassert>
+#include "../key_stream.h"
 
 namespace Doar{
   namespace Small {

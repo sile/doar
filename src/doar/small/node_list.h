@@ -5,6 +5,7 @@
 #include <vector>
 
 namespace Doar {
+  namespace Small {
   class NodeList : public std::vector<Node> {
   public:
     NodeList() : std::vector<Node>(0x10000) {}
@@ -21,6 +22,7 @@ namespace Doar {
       resize(0x10000);
     }
   };
+  }
 }
 
 #endif

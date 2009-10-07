@@ -6,16 +6,15 @@
 
 namespace Doar {
   class Node;
-  class NodeList;
   
   typedef unsigned NodeIndex;
   typedef unsigned TailIndex;
   typedef unsigned Code;
-  typedef int      ID;
   
   typedef std::vector<Code>     CodeList;
   typedef std::vector<unsigned> TindList;
   typedef std::string           Tail;
+  typedef std::vector<Node>     NodeList; // XXX: 名前がかぶる
 
   struct header {
     unsigned node_size; // BASE and CHECK array size

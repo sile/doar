@@ -1,13 +1,21 @@
 #ifndef DOAR_NODE_H
 #define DOAR_NODE_H
 
-#include <stdexcept>
-#include <cassert>
-
 namespace Doar{
+  class Builder;
+  class Searcher;
+
   struct Node {
     Node() : data(0) {}
-    Node(unsigned d) : data(d) {}
+    unsigned id() const { return tail_index(); }
+    bool  valid() const { return data!=0xFFFFFFFF; }
+    static const Node INVALID;
+
+  private:
+    friend class Builder;
+    friend class Searcher;
+
+    explicit Node(unsigned d) : data(d) {}
     
     NodeIndex base() const  { return data; }
     NodeIndex next_index(Code cd) const  { return base()+cd; }
@@ -20,5 +28,6 @@ namespace Doar{
     
     unsigned data;
   };
+  const Node Node::INVALID = Node(0xFFFFFFFF);
 }
 #endif

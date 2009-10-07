@@ -2,9 +2,9 @@
 #define DOAR_SMALL_BUILDER_H
 
 #include "types.h"
-#include "key_stream.h"
 #include "node_list.h"
-#include "node_allocator.h"
+#include "../node_allocator.h"
+#include "../key_stream.h"
 
 namespace Doar {
   namespace Small {

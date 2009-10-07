@@ -1,6 +1,7 @@
 #ifndef DOAR_SEARCHER_H
 #define DOAR_SEARCHER_H
 
+#include <cassert>
 #include "types.h"
 #include "key_stream.h"
 #include "node.h"
@@ -8,21 +9,6 @@
 
 namespace Doar {
   class Searcher {
-  public:
-    static const ID NOT_FOUND = static_cast<ID>(-1);
-
-    struct Range {
-      ID begin;
-      ID end;
-    };
-    
-    struct LOG_ELEMENT {
-      LOG_ELEMENT(unsigned k, ID i) : key_pos(k), id(i) {}
-      unsigned key_pos;
-      ID  id;
-    };
-    typedef std::vector<LOG_ELEMENT> Log;
-
   public:
     Searcher(const char* filepath) : mm(filepath) {
       if(!mm) 
@@ -38,159 +24,85 @@ namespace Doar {
 
     operator bool() const { return (bool)mm; }
     
-    ID search(const char* key) const {
-      KeyStream in(key); 
+    Node search(const char* key, Node node) const {
+      assert(!node.is_terminal());
       
-      Node node=base[0];
+      KeyStream in(key); 
       for(Code cd=in.read();; cd=in.read()) {
 	const NodeIndex idx = node.next_index(cd);
-	const Node next = base[idx];
+	node = base[idx];
 	
-	if(cd==chck[idx]){
-	  if(!next.is_terminal()){
-	    node=next;
+	if(cd==chck[idx])
+	  if(!node.is_terminal())
 	    continue;
-	  }
-	  
-	  if(key_exists(in, next))
-	    return next.tail_index();
-	}
-	return NOT_FOUND;
-      }     
-    }   
-
-    ID search(const char* key, NodeIndex& node_idx) const {
-      KeyStream in(key); 
-      
-      Node node=base[node_idx];
-      for(Code cd=in.read();; cd=in.read()) {
-	const NodeIndex idx = node.next_index(cd);
-	const Node next = base[idx];
-	
-	if(cd==chck[idx]){
-	  if(!next.is_terminal()){
-	    node_idx = idx;
-	    node=next;
-	    continue;
-	  }
-	  
-	  if(key_exists(in, next))
-	    return next.tail_index();
-	}
-	return NOT_FOUND;
-      }     
-    }   
-    
-    ID search(const char* key, Log& log, NodeIndex start_node_idx=0) const {
-      KeyStream in(key); 
-      
-      unsigned key_pos=0;
-      Node node=base[start_node_idx];
-      for(Code cd=in.read();; cd=in.read(), key_pos++) {
-	const NodeIndex idx = node.next_index(cd);
-	const Node next = base[idx];
-	
-	
-	{
-	  NodeIndex end_idx=node.next_index(1);
-	  const Node end_node = base[end_idx]; 
-	  if(1==chck[end_idx])
-	    log.push_back(LOG_ELEMENT(key_pos, end_node.tail_index()));
-	}
-	
-	if(cd==chck[idx]){
-	  if(!next.is_terminal()){
-	    node=next;
-	    continue;
-	  }
-	  
-	  unsigned len;
-	  if(key_including(in, next, len)) {
-	    if(!in.eos())
-	      log.push_back(LOG_ELEMENT(key_pos+len+1, next.tail_index()));
-	    return next.tail_index();
-	  }
-	}
-	return NOT_FOUND;
-      }     
+	  else if (key_exists(in, node))
+	    return node;
+	return Node::INVALID;
+      } 
     }
-    
-    bool prefix_search(const char* key, Range& range, NodeIndex start_node_idx=0) const {
-      KeyStream in(key); 
-      
-      NodeIndex idx=start_node_idx;
-      Node node=base[idx];
-      for(Code cd=in.read();; cd=in.read()) {
-	if(cd==1) {
-	  range.begin = first_id(idx);
-	  if(range.begin==-1)
-	    return false;
-	  
-	  range.end   = last_id(idx)+1;
-	  return true;
-	}
-
-	idx = node.next_index(cd);
-	const Node next = base[idx];
-	
-	if(cd==chck[idx]){
-	  if(!next.is_terminal()){
-	    node=next;
-	    continue;
-	  }
-	  
-	  if(key_included(in, next)){
-	    range.begin = next.tail_index();
-	    range.end   = range.begin+1;
-	    return true;
-	  }
-	}
-	return false;
-      }           
+    Node search(const char* key) const { return search(key,root_node()); }
+    Node search(char* key, unsigned len) const { return search(key,len,root_node()); }
+    Node search(char* key, unsigned len, Node root_node) const{
+      char c = key[len];              key[len]='\0';
+      Node rlt=search(key,root_node); key[len]=c;
+      return rlt;
     }
 
+    Node search_non_greedy(const char* key, unsigned& key_offset, Node& root_node) const {
+      assert(!root_node.is_terminal());
+
+      bool first=true;
+      Node node = root_node;
+      KeyStream in(key+key_offset);
+      for(Code cd=in.read();; cd=in.read(), root_node=node, key_offset++, first=false) {
+	if(!first && cd != 1) {
+	  const NodeIndex other_idx = root_node.next_index(1);
+	  if(1==chck[other_idx]) {
+	    return base[other_idx];
+	  }
+	}
+
+	const NodeIndex idx = node.next_index(cd);
+	node = base[idx];
+	
+	if(cd==chck[idx]) {
+	  if(!node.is_terminal())
+	    continue;
+
+	  if (key_including(in, node, key_offset)) {
+	    root_node=Node::INVALID;
+	    return node;
+	  }
+	}
+	return Node::INVALID;
+      }
+    }
+
+    unsigned children(Node parent, NodeList& result) const {
+      if(parent.is_terminal())
+	return 0;
+      
+      const NodeIndex base_idx = parent.base();
+      for(Code cd=1; cd <= KeyStream::MAX_CODE; cd++)
+	if(cd==chck[base_idx+cd])
+	  result.push_back(base[base_idx+cd]);
+      return result.size();
+    } 
+
+    Node root_node() const { return base[0]; }
     unsigned size() const { return h.tind_size; }
 
   private:
     bool key_exists(const KeyStream in, const Node n) const {
       return in.eos() || strcmp(in.rest(), tail+tind[n.tail_index()])==0;
     }
-    bool key_included(const KeyStream in, const Node n) const {
-      return strncmp(in.rest(), tail+tind[n.tail_index()], strlen(in.rest()))==0;
-    }
-    int key_including(const KeyStream in, const Node n, unsigned& len) const {
+    bool key_including(const KeyStream in, const Node n, unsigned& key_offset) const {
+      if(in.eos())
+	return true;
       const char* ptr=tail+tind[n.tail_index()];
-      len = strlen(ptr);
-      return in.eos() || strncmp(in.rest(), ptr, len)==0;
-    }
-    
-    int first_id (NodeIndex idx) const {
-      NodeIndex base_idx = base[idx].base();
-       
-      for(Code cd=1; cd <= KeyStream::MAX_CODE; cd++) {
-	const Node next = base[base_idx+cd];
-	
-	if(cd==chck[base_idx+cd])
-	  if(next.is_terminal())
-	    return next.tail_index();
-	  else
-	    cd=0,base_idx=next.base();
-      }
-      return -1;
-    }
-    int last_id (NodeIndex idx) const {
-      NodeIndex base_idx = base[idx].base();
-      
-      for(Code cd=KeyStream::MAX_CODE; cd > 0; cd--) {
-	const Node next = base[base_idx+cd];
-	
-	if(cd==chck[base_idx+cd])
-	  if(next.is_terminal())
-	    return next.tail_index();
-	  else
-	    cd=KeyStream::MAX_CODE+1,base_idx=next.base();
-      }
-      return -1;
+      unsigned len = strlen(ptr);
+      key_offset += len + 1;
+      return strncmp(in.rest(), ptr, len)==0;
     }
     
   private:

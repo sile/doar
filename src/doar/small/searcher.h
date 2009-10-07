@@ -1,10 +1,12 @@
-#ifndef DOAR_SMALLSEARCHER_H
-#define DOAR_SMALLSEARCHER_H
+#ifndef DOAR_SMALL_SEARCHER_H
+#define DOAR_SMALL_SEARCHER_H
+
+// XXX: 速度的な優位性が(試した環境では)見つからなかったのでなくすかも: 32万eucの場合
 
 #include "types.h"
-#include "key_stream.h"
 #include "node.h"
-#include "../util/mmap_t.h"
+#include "../../util/mmap_t.h"
+#include "../key_stream.h"
 
 namespace Doar {
   namespace Small {

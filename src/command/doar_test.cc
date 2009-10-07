@@ -1,7 +1,7 @@
+#include <iostream>
 #include "../doar/searcher.h"
 #include "../util/read_line.h"
 #include "../util/gettime.h"
-#include <iostream>
 
 int main(int argc, char** argv) {
   if(argc < 3) {
@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
       if(cnt % interval == 0)
 	std::cerr << " # " << cnt << std::endl;
 
-      if(srch.search(line)==srch.NOT_FOUND)
+      if(!srch.search(line).valid())
 	err++;
     }
   }
