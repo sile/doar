@@ -48,7 +48,7 @@ namespace Doar {
       return rlt;
     }
 
-    Node search_non_greedy(const char* key, unsigned& key_offset, Node& root_node) const {
+    Node non_greedy_search(const char* key, unsigned& key_offset, Node& root_node) const {
       assert(!root_node.is_terminal());
 
       Node node = root_node;
