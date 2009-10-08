@@ -14,13 +14,16 @@ namespace Doar {
   typedef std::vector<Code>      CodeList;
   typedef std::vector<unsigned>  TindList;
   typedef std::string            Tail;
-  typedef std::vector<NodeIndex> NodeIndexList;
 
   struct header {
     unsigned node_size; // BASE and CHECK array size
     unsigned tind_size; // TAIL index array size  # TIND[BASE[i]] -> TAIL index
     unsigned tail_size; // TAIL array size
   };
+
+  static const Code CODE_LIMIT    = 0xFF;
+  static const Code TERMINAL_CODE = 0x00;
+  static const Code VACANT_CODE   = CODE_LIMIT;
 }
 
 #endif

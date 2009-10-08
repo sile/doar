@@ -39,6 +39,9 @@ namespace Doar {
 
     // ノードが有効化どうかを返す
     bool valid() const;
+
+    // ノードが葉(終端)かどうかを返す
+    bool is_leaf() const;
   }
 
   //=== ファイル: src/doar/searcher.h ===
@@ -52,28 +55,25 @@ namespace Doar {
     // ルートノードを取得する
     Node root_node() const;
 
-    // キーに対応するNodeを探す
+    // キーに対応するノードを探す
     // 検索に失敗した場合は、Node.valid()==falseとなる
     Node search(const char* key) const;
-    Node search(const char* key, Node root_node) const;
-    Node search(char* key, unsigned len) const;
-    Node search(char* key, unsigned len, Node root_node) const;
 
-    // common-prefix searchを行うためのメソッド
-    // キーに対応するNodeを返す
-    // searchメソッドとは異なり、キーの途中にに一致するノードがある場合は、そこで検索が中断される
-    // 検索は、key+key_offsetから開始される。また、key_offsetには最後に使われたキーの位置が格納される。
-    // 検索は、root_node以下のノードを対象に行われる。また、検索が中断された場合には、戻り値のNodeの親ノードが格納される。
-    // 検索に失敗した場合には、Node.valid()==falseとなる
-    // 一致する全てのノードが見つかった場合、root_node.valid()==falseとなる 
-    //   ※ 後者の場合、strlen(key)==key_offsetとは限らない
-    Node non_greedy_search(const char* key, unsigned& key_offset, Node& root_node) const;
+    // 初期ノード(root_node)を指定して、検索を行う
+    // root_nodeには、最後に使われた親ノードが格納される
+    Node search(const char* key, Node &root_node) const;
+
+    // common-prefix検索を行う
+    // 初期ノード(root_node)およびキーの検索開始位置(offset)を指定して、common-prefix検索を行う
+    // キーの途中で一致するノードがあった場合は、検索は中断され、そのノードが返される
+    // offsetには最後に使われたキーの位置が、root_nodeには最後に使われた親ノードが、格納される
+    // ※ searchメソッドとは異なり、空文字列に対する検索は常に失敗する。(= 最低でも一文字以上一致する必要がある。)
+    Node common_prefix_search(const char* key, unsigned& offset, Node& root_node) const;
     
     // parentの子ノード(のindex)を、resultに集める
-    // 戻り値は、子ノードの数
-    unsigned children(Node parent, NodeIndexList& result) const;
+    void children(Node parent, NodeIndexList& result) const;
     
-    // idxから遷移に使用した文字を取得する
+    // idxから(遷移)文字を取得する
     char get_arc(NodeIndex idx) const;
     // idxからNodeを取得する
     Node get_node(NodeIndex idx) const;

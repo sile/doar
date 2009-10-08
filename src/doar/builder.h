@@ -52,8 +52,8 @@ namespace Doar {
 
       header h={0,tind.size(),tail.size()};
       
-      for(int i=chck.size()-1; i>=0; i--) 
-	if(!chck[i]==0){
+      for(int i=chck.size()-1; i>=0; i--)
+	if(chck[i]!=VACANT_CODE) {
 	  h.node_size=i+1;
 	  break;
 	}
@@ -61,13 +61,13 @@ namespace Doar {
       // 範囲外アクセスを防ぐために調整する
       for(int i=0; i < h.node_size; i++) {
 	Node n = base[i];
-	if(!chck[i]==0 && !n.is_terminal())
-	  if(n.base()+KeyStream::MAX_CODE >= h.node_size)
-	    h.node_size = n.base()+KeyStream::MAX_CODE;
+	if(chck[i]!=VACANT_CODE && !n.is_leaf())
+	  if(n.base()+CODE_LIMIT-1 >= h.node_size)
+	    h.node_size = n.base()+CODE_LIMIT-1;
       }
       base.resize(h.node_size);
       chck.resize(h.node_size);
-      
+
       write(f,&h,sizeof(header));
       write(f,base.data(),h.node_size*sizeof(Node));
       write(f,chck.data(),h.node_size);
@@ -88,7 +88,7 @@ namespace Doar {
 
       std::vector<unsigned> end_list;
       CodeList cs;
-      Code prev=0;
+      Code prev=VACANT_CODE;
 
       // 
       for(unsigned i=beg; i < end; i++) {

@@ -6,9 +6,10 @@ namespace Doar{
   class Searcher;
 
   struct Node {
-    Node() : data(0) {}
-    unsigned id() const { return tail_index(); }
-    bool  valid() const { return data!=0xFFFFFFFF; }
+    Node() : data(0xFFFFFFFF) {}
+    unsigned id()  const { return tail_index(); }
+    bool valid()   const { return data!=0xFFFFFFFF; }
+    bool is_leaf() const { return data&0x80000000; } 
     static const Node INVALID;
 
   private:
@@ -21,13 +22,11 @@ namespace Doar{
     NodeIndex next_index(Code cd) const  { return base()+cd; }
     TailIndex tail_index() const  { return data&0x7FFFFFFF; }
     
-    bool is_terminal() const { return data&0x80000000; }
-    
     void set_base(NodeIndex idx) { data=idx; }
     void set_tail_index(TailIndex idx) { data= idx | 0x80000000; }
     
     unsigned data;
   };
-  const Node Node::INVALID = Node(0xFFFFFFFF);
+  const Node Node::INVALID = Node();
 }
 #endif

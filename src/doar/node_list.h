@@ -24,8 +24,8 @@ namespace Doar {
 
   class ChckList : public std::vector<unsigned char> {
   public:
-    ChckList() : std::vector<unsigned char>(0x10000) {}
-    
+    ChckList() { resize(0x10000); }
+
     unsigned char& at(unsigned index) {
       while(index >= size()) {
 	resize(size()*2);
@@ -37,6 +37,8 @@ namespace Doar {
       std::vector<unsigned char>::clear();
       resize(0x10000);
     }
+    
+    void resize(std::size_t new_size) { std::vector<unsigned char>::resize(new_size, VACANT_CODE); }
   };
 }
 
