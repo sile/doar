@@ -67,16 +67,21 @@ namespace Doar {
     // 初期ノード(root_node)およびキーの検索開始位置(offset)を指定して、common-prefix検索を行う
     // キーの途中で一致するノードがあった場合は、検索は中断され、そのノードが返される
     // offsetには最後に使われたキーの位置が、root_nodeには最後に使われた親ノードが、格納される
+    // offset=strlen(key)の場合、root_node.is_leaf()の場合は、常に検索に失敗する。
     // ※ searchメソッドとは異なり、空文字列に対する検索は常に失敗する。(= 最低でも一文字以上一致する必要がある。)
     Node common_prefix_search(const char* key, unsigned& offset, Node& root_node) const;
+
+    // common-prefix検索(走査)を行う
+    // fnは、void fn(const char* key, unsigned key_offset, unsigned id)形式のファンクタ
+    // fnは、keyに一致するノードが見つかった場合に、その都度呼び出される
+    template<typename Callback>
+    void common_prefix_search(const char* key, Callback& fn) const;
     
-    // parentの子ノード(のindex)を、resultに集める
-    void children(Node parent, NodeIndexList& result) const;
+    // parentの子ノード(のindex)を、走査する
+    // fnは、 void fn(char arc_char, Node child_node)形式のファンクタ
+    template<typename Callback>
+    void children(Node parent, Callback& fn) const;
     
-    // idxから(遷移)文字を取得する
-    char get_arc(NodeIndex idx) const;
-    // idxからNodeを取得する
-    Node get_node(NodeIndex idx) const;
   };
 }
 

@@ -8,14 +8,12 @@
 #include <vector>
 
 namespace Doar {
-  // keyは'\0'終端文字列で、値が0xFFの文字を含むことはできない
+  // MEMO: keyは'\0'終端文字列で、値が0xFFの文字を含むことはできない
   class KeyStream {
   public:
     KeyStream(){}
     KeyStream(const char* key) : cur(key) {}
     
-    // TODO: Codeはなくす。遷移する時(get_next_index)だけ、+1するようにする
-    // chckの初期値は0xFF
     Code read() { return static_cast<unsigned char>(*cur++); }
     const char* rest() const { return cur; }
     bool eos() const { return cur[-1]=='\0'; }

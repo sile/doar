@@ -2,21 +2,23 @@
 #include <string>
 #include "../doar/searcher.h"
 
-// XXX: name
-struct stt {
-  stt(const Doar::Searcher& sh,std::string s,unsigned beg_=0) : srch(sh),orig(s),beg(beg_) {}
-  void operator()(const char* key, unsigned i, unsigned id) {
-    std::cout << " #"<<id<<": "
-	      << orig.substr(0,beg) <<"\033[31m\033[1m"
-	      << orig.substr(beg,i) <<"\033[0m"
-	      << orig.substr(beg+i) << std::endl;
-    
-    stt yyy(srch,orig,beg+i);
-    srch.common_prefix_search(key+i,yyy);
+class print_lattice {
+public:
+  print_lattice(const Doar::Searcher& sh, const std::string& s,unsigned bg) 
+  : srch(sh),str(s),beg(bg) {}
+  
+  void operator()(const char* key, unsigned offset, unsigned id) const {
+    printf(" %02X-%02X #%06X: ",beg,beg+offset,id);         // 一致位置とID
+    std::cout << str.substr(0,beg)      <<"\033[31m\033[1m"
+      	      << str.substr(beg,offset) <<"\033[0m"         // 一致文字列を赤字で表示
+	      << str.substr(beg+offset) << std::endl;
+    print_lattice next(srch,str,beg+offset); // 再帰的に処理する
+    srch.common_prefix_search(key+offset,next);
   }
+private:
   const Doar::Searcher& srch;
   unsigned beg;
-  std::string orig;
+  const std::string& str;
 };
 
 
@@ -38,7 +40,7 @@ int main(int argc, char** argv) {
     Doar::Node node;
     
     if(word.empty()) {
-      std::cerr << "Please input 'KEY'(default search) or 'KEY+'(common prefix search)" << std::endl;
+      std::cerr << "Please input 'KEY'(default search) or 'KEY+'(common prefix search) or 'KEY~'(show lattice)" << std::endl;
       continue;
     }
     switch(word[word.size()-1]) {
@@ -56,8 +58,8 @@ int main(int argc, char** argv) {
     case '~':
       {
 	std::string key =  word.substr(0,word.size()-1);
-	stt xxx(srch,key);
-	srch.common_prefix_search(key.c_str(), xxx);
+	print_lattice pl(srch,key,0);
+	srch.common_prefix_search(key.c_str(), pl);
       }
       break;
     default:

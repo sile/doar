@@ -7,7 +7,7 @@
 
 namespace Doar {
   class NodeAllocator {
-    typedef std::vector<bool> Bitset; // TODO: オリジナルの方もこっちに変更しても良いかも
+    typedef std::vector<bool> Bitset;
 
     struct Link {
       Link(unsigned n) : next(n) {}
