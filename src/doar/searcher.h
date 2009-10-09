@@ -16,10 +16,10 @@ namespace Doar {
 
       // TODO: format check
       memcpy(&h,mm.ptr,sizeof(header));
-      base = reinterpret_cast<const Node*>(static_cast<char*>(mm.ptr)+sizeof(header));
+      tind = reinterpret_cast<const unsigned*>(static_cast<char*>(mm.ptr)+sizeof(header));
+      base = reinterpret_cast<const Node*>(tind+h.tind_size);
       chck = reinterpret_cast<const unsigned char*>(base+h.node_size);
-      tind = reinterpret_cast<const unsigned*>(chck+h.node_size);
-      tail = reinterpret_cast<const char*>(tind + h.tind_size);
+      tail = reinterpret_cast<const char*>(chck + h.node_size);
     }
 
     operator bool() const { return (bool)mm; }

@@ -69,9 +69,9 @@ namespace Doar {
       chck.resize(h.node_size);
 
       write(f,&h,sizeof(header));
+      write(f,tind.data(),h.tind_size*sizeof(unsigned));
       write(f,base.data(),h.node_size*sizeof(Node));
       write(f,chck.data(),h.node_size);
-      write(f,tind.data(),h.tind_size*sizeof(unsigned));
       write(f,tail.data(),h.tail_size);
       close(f);
       return true;
