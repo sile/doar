@@ -4,30 +4,33 @@
 #include "types.h"
 #include "key_stream.h"
 #include "node_list.h"
-#include "node_allocator.h"
+#include "forward_link_allocator.h"
+#include "shrink_tail.h"
 
 namespace Doar {
   class Builder {
+    typedef ForwardLink::Allocator Allocator;
+    
   public:
     bool build(const char* filepath) {
-      NodeAllocator alloca;
+      Allocator alloca;
       KeyStreamList keys(filepath);
       if(!keys)
 	return false;
       // TODO: sort check
       //
 
-      init();
+      init(keys.size());
       build_impl(keys,alloca,0,keys.size(),0);
-
       return true;
     }
     bool build(const char** strs, unsigned str_count) {
-      NodeAllocator alloca;
+      Allocator alloca;
       KeyStreamList keys(strs, str_count);
       // TODO: sort check
 
-      init();
+      init(keys.size());
+      
       build_impl(keys,alloca,0,keys.size(),0);
       return true;
     }
@@ -47,8 +50,8 @@ namespace Doar {
       int f = creat(filepath, 0666);
       if(f==-1)
 	return false;
-
-      shrink_tail(); 
+      
+      ShrinkTail(tail,tind).shrink();
 
       header h={0,tind.size(),tail.size()};
       
@@ -80,7 +83,7 @@ namespace Doar {
     unsigned size() const { return tind.size(); }
     
   private:
-    void build_impl(KeyStreamList& keys, NodeAllocator& alloca, unsigned beg, unsigned end, NodeIndex root_idx) {
+    void build_impl(KeyStreamList& keys, Allocator& alloca, unsigned beg, unsigned end, NodeIndex root_idx) {
       if(end-beg==1) {
 	insert_tail(keys[beg],root_idx);
 	return;
@@ -104,7 +107,6 @@ namespace Doar {
       
       //
       NodeIndex x = alloca.x_check(cs);
-      
       for(unsigned i=0; i<cs.size(); i++) 
 	build_impl(keys, alloca,end_list[i],end_list[i+1], set_node(cs[i],root_idx,x));
     }
@@ -128,74 +130,17 @@ namespace Doar {
       tail += '\0';
     }
 
-    struct ShrinkRecord {
-      ShrinkRecord(unsigned i,const char* t) 
-        : tind_idx(i),tail(t),tail_len(strlen(t)) {}
-      unsigned    tind_idx;
-      const char* tail;
-      int         tail_len;
-    };
-    void shrink_tail() {
-      std::vector<ShrinkRecord> terminal_indices;
-      std::vector<ShrinkRecord> tmps;
-      terminal_indices.reserve(tind.size());
-
-      for(unsigned i=0; i < tind.size(); i++)
-	terminal_indices.push_back(ShrinkRecord(i,tail.data()+tind[i]));
-      
-      std::sort(terminal_indices.begin(), terminal_indices.end(), tail_gt);
-      
-      //
-      Tail new_tail;
-      new_tail.reserve(tail.size()/2);
-      new_tail += '\0';
-
-      for(unsigned i=0; i < terminal_indices.size(); i++) {
-	const ShrinkRecord& p = terminal_indices[i];
-
-	TailIndex tail_idx = new_tail.size();
-	if(i>0 && can_share(terminal_indices[i-1], p)) {
-	  tail_idx -= p.tail_len+1; // +1は、末尾の'\0'分
-	} else {
-	  new_tail += p.tail;
-	  new_tail += '\0';
-	}
-	tind[p.tind_idx] = tail_idx;
-      }
-      tail = new_tail;
-    }
-
-    // lftがrgtを包含しているか?
-    bool can_share(const ShrinkRecord& lft, const ShrinkRecord& rgt) const {
-      const char* lp = lft.tail;
-      const char* rp = rgt.tail;
-
-      for(int li=lft.tail_len-1, ri=rgt.tail_len-1;; li--, ri--) {
-	if(ri < 0)                return true;  // MEMO: 先にriをチェックするのは重要
-	else if(li < 0)           return false;
-	else if(lp[li] != rp[ri]) return false;
-      }
-    }
-
-    static bool tail_gt (const ShrinkRecord& lft, const ShrinkRecord& rgt) {
-      const char* lp = lft.tail;
-      const char* rp = rgt.tail;
-      
-      for(int li=lft.tail_len-1, ri=rgt.tail_len-1;; li--, ri--) {
-	if(li < 0)               return false;
-	else if(ri < 0)          return true;
-	else if(lp[li] > rp[ri]) return true;
-	else if(lp[li] < rp[ri]) return false;
-      }
-    }
-
-    void init() {
+    void init(unsigned key_num) {
       base.clear();
+      base.resize(key_num*2);
       chck.clear();
+      chck.resize(key_num*2);
+
       tind.clear();
+      tind.reserve(key_num);
       tail.clear();
       tail += '\0';
-      tail.reserve(0xFFFF);
+      tail.reserve(key_num*4);
     }
 
   private:
