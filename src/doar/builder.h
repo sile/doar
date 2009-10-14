@@ -4,12 +4,12 @@
 #include "types.h"
 #include "key_stream.h"
 #include "node_list.h"
-#include "forward_link_allocator.h"
+#include "static_allocator.h"
 #include "shrink_tail.h"
 
 namespace Doar {
   class Builder {
-    typedef ForwardLink::Allocator Allocator;
+    typedef StaticAllocator Allocator;
     
   public:
     bool build(const char* filepath) {

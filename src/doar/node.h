@@ -2,9 +2,6 @@
 #define DOAR_NODE_H
 
 namespace Doar{
-  class Builder;
-  class Searcher;
-
   struct Node {
     Node() : data(0xFFFFFFFF) {}
     unsigned id()  const { return tail_index(); }
@@ -15,6 +12,7 @@ namespace Doar{
   private:
     friend class Builder;
     friend class Searcher;
+    friend class DoubleArray;
 
     explicit Node(unsigned d) : data(d) {}
     
