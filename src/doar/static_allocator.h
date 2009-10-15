@@ -37,8 +37,8 @@ namespace Doar {
     };
     
     typedef std::vector<bool> Bitset;
-    static const int PER_LINK_SIZE=0x10000;
-    static const int TRY_ALLOC_THRESHOLD=0x80;
+    static const unsigned PER_LINK_SIZE=0x10000;
+    static const unsigned TRY_ALLOC_THRESHOLD=0x80;
     
   public:
     // MEMO: bset.size()はPER_LINK_SIZEの倍数である必要がある

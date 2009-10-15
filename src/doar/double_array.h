@@ -9,7 +9,8 @@
 namespace Doar {
   class DoubleArray {
     typedef DynamicAllocator Allocator;
-    
+    friend class Builder;
+
   public:
     DoubleArray () { init(); col_cnt=0;}
 
@@ -112,7 +113,7 @@ namespace Doar {
 	idx=set_node(c, idx, alloca.x_check_one(c));
       
       rlt.last_node = idx;
-      rlt.tail_idx = tin.rest()-tail.data();
+      rlt.tail_idx = tin.eos() ? 0 : tin.rest()-tail.data();
       rlt.codes[0] = c;
       rlt.codes[1] = tc;
     }

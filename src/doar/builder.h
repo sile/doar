@@ -7,6 +7,9 @@
 #include "static_allocator.h"
 #include "shrink_tail.h"
 
+// XXX:
+#include "double_array.h"
+
 namespace Doar {
   class Builder {
     typedef StaticAllocator Allocator;
@@ -32,6 +35,15 @@ namespace Doar {
       init(keys.size());
       
       build_impl(keys,alloca,0,keys.size(),0);
+      return true;
+    }
+    bool build(const DoubleArray& trie) {
+      // TOOD: buildする前に、trieを軽量化したい -> build後に使えなくする? -> name
+      Allocator alloca;
+      init(trie.tind.size());
+      tind=trie.tind;
+      tail=trie.tail;
+      build_impl(trie,alloca,trie.base[0],0);
       return true;
     }
 
@@ -62,7 +74,7 @@ namespace Doar {
 	}
 
       // 範囲外アクセスを防ぐために調整する
-      for(int i=0; i < h.node_size; i++) {
+      for(unsigned i=0; i < h.node_size; i++) {
 	Node n = base[i];
 	if(chck[i]!=VACANT_CODE && !n.is_leaf())
 	  if(n.base()+CODE_LIMIT-1 >= h.node_size)
@@ -111,11 +123,32 @@ namespace Doar {
 	build_impl(keys, alloca,end_list[i],end_list[i+1], set_node(cs[i],root_idx,x));
     }
 
+    // XXX: for dev
+    void build_impl(const DoubleArray& trie, Allocator& alloca, Node old_root, NodeIndex new_root_idx) {
+      if(old_root.is_leaf()) {
+	// TODO:
+	insert_tail(new_root_idx, old_root.tail_index());
+	return;
+      }
+      
+      CodeList cs;
+      trie.correspond_codes(old_root,cs);
+      
+      NodeIndex x = alloca.x_check(cs);
+      for(unsigned i=0; i < cs.size(); i++)
+	build_impl(trie, alloca, trie.base[old_root.next_index(cs[i])], set_node(cs[i],new_root_idx,x));
+    }
+
     NodeIndex set_node(Code code, NodeIndex prev, NodeIndex x_node) {
       NodeIndex next = x_node+code;
       base.at(prev).set_base(x_node);
       chck.at(next) = code;
       return next;
+    }
+
+    // XXX:
+    void insert_tail(NodeIndex node, unsigned tind_idx) {
+      base.at(node).set_tail_index(tind_idx);
     }
 
     void insert_tail(KeyStream in, NodeIndex node) {
@@ -140,7 +173,7 @@ namespace Doar {
       tind.reserve(key_num);
       tail.clear();
       tail += '\0';
-      tail.reserve(key_num*4);
+      tail.reserve(key_num);
     }
 
   private:

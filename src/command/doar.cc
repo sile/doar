@@ -5,7 +5,7 @@
 class print_lattice {
 public:
   print_lattice(const Doar::Searcher& sh, const std::string& s,unsigned bg) 
-  : srch(sh),str(s),beg(bg) {}
+    : srch(sh),str(s),beg(bg) {}
   
   void operator()(const char* key, unsigned offset, unsigned id) const {
     printf(" %02X-%02X #%06X: ",beg,beg+offset,id);         // 一致位置とID
@@ -17,8 +17,8 @@ public:
   }
 private:
   const Doar::Searcher& srch;
-  unsigned beg;
   const std::string& str;
+  unsigned beg;
 };
 
 

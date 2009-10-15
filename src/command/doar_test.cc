@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
 
   for(int i=0; i < TIMES; i++) {
     rl.reset();
-    while(line=rl.read()) {
+    while((line=rl.read())) {
       cnt++;
       if(cnt % interval == 0)
 	std::cerr << " # " << cnt << std::endl;

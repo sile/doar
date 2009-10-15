@@ -14,8 +14,8 @@ namespace Doar {
       unsigned next;
     };
     typedef std::vector<Link> LinkList;
-    typedef vector<bool> Bset;
-    static const int TRY_ALLOC_THRESHOLD=0x80;
+    typedef std::vector<bool> Bset;
+    static const unsigned TRY_ALLOC_THRESHOLD=0x80;
 
   public:
     DynamicAllocator() {
