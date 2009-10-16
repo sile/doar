@@ -13,6 +13,7 @@ namespace Doar{
     friend class Builder;
     friend class Searcher;
     friend class DoubleArray;
+    friend class DynamicAllocator; // XXX:
 
     explicit Node(unsigned d) : data(d) {}
     

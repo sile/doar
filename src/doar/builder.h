@@ -7,9 +7,6 @@
 #include "static_allocator.h"
 #include "shrink_tail.h"
 
-// XXX:
-#include "double_array.h"
-
 namespace Doar {
   class Builder {
     typedef StaticAllocator Allocator;
@@ -37,13 +34,14 @@ namespace Doar {
       build_impl(keys,alloca,0,keys.size(),0);
       return true;
     }
-    bool build(const DoubleArray& trie) {
-      // TOOD: buildする前に、trieを軽量化したい -> build後に使えなくする? -> name
+    
+    bool build(const BaseList& src_base, const ChckList& src_chck, const TindList& src_tind, const Tail& src_tail) {
+      // TOOD: buildする前に、trieを軽量化したい -> build後に使えなくする? -> coerce_xxx
       Allocator alloca;
-      init(trie.tind.size());
-      tind=trie.tind;
-      tail=trie.tail;
-      build_impl(trie,alloca,trie.base[0],0);
+      init(src_tind.size());
+      tind=src_tind;
+      tail=src_tail;
+      build_impl(src_base,src_chck,alloca,src_base[0],0);
       return true;
     }
 
@@ -124,19 +122,25 @@ namespace Doar {
     }
 
     // XXX: for dev
-    void build_impl(const DoubleArray& trie, Allocator& alloca, Node old_root, NodeIndex new_root_idx) {
+    void build_impl(const BaseList& src_base, const ChckList& src_chck, Allocator& alloca, Node old_root, NodeIndex new_root_idx) {
       if(old_root.is_leaf()) {
 	// TODO:
 	insert_tail(new_root_idx, old_root.tail_index());
 	return;
       }
-      
+
       CodeList cs;
-      trie.correspond_codes(old_root,cs);
+      // trie.correspond_codes(old_root,cs);
+      {
+	NodeIndex beg = old_root.base();
+	for(Code i=0; i < CODE_LIMIT; i++)
+	  if(i == src_chck[beg+i])
+	    cs.push_back(i);
+      }
       
       NodeIndex x = alloca.x_check(cs);
       for(unsigned i=0; i < cs.size(); i++)
-	build_impl(trie, alloca, trie.base[old_root.next_index(cs[i])], set_node(cs[i],new_root_idx,x));
+	build_impl(src_base, src_chck, alloca, src_base[old_root.next_index(cs[i])], set_node(cs[i],new_root_idx,x));
     }
 
     NodeIndex set_node(Code code, NodeIndex prev, NodeIndex x_node) {

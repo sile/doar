@@ -18,14 +18,32 @@ namespace Doar {
     static const unsigned TRY_ALLOC_THRESHOLD=0x80;
 
   public:
-    DynamicAllocator() {
-      lnk.push_back(Link(0,0));
-      resize_link(0xFFFF);
+    DynamicAllocator() { init(); }
+    
+    void init(unsigned init_size=0x10000) {
+      assert(init_size > 1);
       
-      bset.resize(0x10000);
+      lnk.clear();
+      lnk.push_back(Link(0,0));
+      resize_link(init_size);
+      
+      bset.clear();
+      bset.resize(init_size);
       bset[1].flip();
       
       beg_idx=CODE_LIMIT;
+    }
+    
+    void restore_condition(Node* base, unsigned char* chck, unsigned node_size) {
+      init(static_cast<unsigned>(node_size*1.5));
+
+      for(NodeIndex i=0; i < node_size; i++) {
+	if(!base[i].is_leaf())  // XXX: INVALID is leaf という条件に依存している。 TODO: ドキュメント化
+	  bset[base[i].base()].flip();
+	
+	if(chck[i] != VACANT_CODE)
+	  alloc(i);
+      }
     }
 
     void x_free(NodeIndex idx) {
@@ -36,6 +54,10 @@ namespace Doar {
     void alloc(NodeIndex node) {
       while (node >= lnk.size()-1) // 最後のnodeは特別なので-1する
 	resize_link();
+
+      if(node==beg_idx)
+	beg_idx=lnk[beg_idx].prev;
+
       alloc_impl(node);
     }
 
@@ -60,7 +82,6 @@ namespace Doar {
     
     // XXX: Below code assume that CODES is already sorted.
     NodeIndex x_check(const CodeList& codes) {
-      for(; lnk[beg_idx].next==0; beg_idx=lnk[beg_idx].prev);
       assert(beg_idx>=CODE_LIMIT);
       
       NodeIndex cur = lnk[beg_idx].next;

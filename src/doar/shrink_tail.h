@@ -12,7 +12,6 @@ namespace Doar {
 
     void shrink() {
       std::vector<ShrinkRecord> terminal_indices;
-      std::vector<ShrinkRecord> tmps;
       terminal_indices.reserve(tind.size());
 
       for(unsigned i=0; i < tind.size(); i++)
@@ -27,7 +26,7 @@ namespace Doar {
 
       for(unsigned i=0; i < terminal_indices.size(); i++) {
 	const ShrinkRecord& p = terminal_indices[i];
-
+	
 	TailIndex tail_idx = new_tail.size();
 	if(i>0 && can_share(terminal_indices[i-1], p)) {
 	  tail_idx -= p.tail_len+1; // +1は、末尾の'\0'分

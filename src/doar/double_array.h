@@ -5,6 +5,8 @@
 #include "key_stream.h"
 #include "node_list.h"
 #include "dynamic_allocator.h"
+#include "../util/mmap_t.h"
+#include "builder.h"
 
 namespace Doar {
   class DoubleArray {
@@ -12,7 +14,7 @@ namespace Doar {
     friend class Builder;
 
   public:
-    DoubleArray () { init(); col_cnt=0;}
+    DoubleArray () { init(); }
 
     bool insert(const char* key) {
       KeyStream in(key);
@@ -36,7 +38,6 @@ namespace Doar {
 	  } 
 	  idx = next_idx;
 	} else {
-	  col_cnt++;
 	  collision_case(in, cd, idx);
 	  return true;
 	}
@@ -60,6 +61,46 @@ namespace Doar {
     }    
 
     Node root_node() const { return base[0]; }
+
+    bool save(const char* path) {
+      Builder bld;
+      bld.build(base,chck,tind,tail);
+      return bld.save(path);
+    }
+
+    // XXX: 
+    bool load(const char* path) {
+      init();
+
+      mmap_t mm(path);
+      if(!mm) 
+	return false;
+
+      // TODO: format check      
+      header h;
+      memcpy(&h,mm.ptr,sizeof(header));
+
+      void* beg=static_cast<char*>(mm.ptr)+sizeof(header);
+      void* end=static_cast<unsigned*>(beg)+h.tind_size;
+      tind.assign(static_cast<unsigned*>(beg),static_cast<unsigned*>(end));
+
+      beg=end;
+      end=static_cast<Node*>(beg)+h.node_size;
+      base.assign(static_cast<Node*>(beg),static_cast<Node*>(end));
+
+      beg=end;
+      end=static_cast<unsigned char*>(beg)+h.node_size;
+      chck.assign(static_cast<unsigned char*>(beg),static_cast<unsigned char*>(end));
+      
+      beg=end;
+      end=static_cast<char*>(beg)+h.tail_size;
+      tail.assign(static_cast<char*>(beg),static_cast<char*>(end));
+
+      //
+      alloca.restore_condition(base.data(),chck.data(),h.node_size);
+      
+      return true;
+    }
     
   private:
     void init() {
@@ -195,9 +236,6 @@ namespace Doar {
     ChckList chck;
     TindList tind;
     Tail     tail;     
-    
-  public:
-    int col_cnt;
   };
 }
 

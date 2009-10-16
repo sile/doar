@@ -44,6 +44,16 @@ namespace Doar {
     // MEMO: bset.size()はPER_LINK_SIZEの倍数である必要がある
     StaticAllocator() : root(0),bset(PER_LINK_SIZE) {
 	last_idx=root.append(1,PER_LINK_SIZE);
+
+	// XXX: for test
+	//      double_arrayとの互換性のために、CODE_LIMITには割り当て無いようにする
+	Link* tmp=&root;
+	for(;; tmp=tmp->next)
+	  if(tmp->next->idx==CODE_LIMIT) {
+	    tmp->remove_next();
+	    break;
+	  }
+
 	bset[0].flip();
     }
     ~StaticAllocator() {
