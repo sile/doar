@@ -27,16 +27,18 @@ namespace {
     rb_yield_values(2,INT2FIX(id),INT2FIX(offset));
   }
 
-  class EachAllKey {
+  class YieldAllKey {
   public:
-    EachAllKey(const Doar::Searcher& sh)
+    YieldAllKey(const Doar::Searcher& sh) 
       : srch(sh), len(0) {}
+    YieldAllKey(const Doar::Searcher& sh, const std::string& base) 
+      : srch(sh), buf(base), len(base.size()) {}
 
     void operator() (char c, Doar::Node parent) const {
       buf += c;
       if(parent.is_leaf()) {
 	buf += srch.tail_ptr(parent); // XXX: tail_ptr
-	rb_yield(rb_str_new2(buf.c_str()));
+	rb_yield_values(2,INT2FIX(parent.id()), rb_str_new2(buf.c_str()));
       } else {
 	len++;
 	srch.children(parent,*this);
@@ -60,7 +62,7 @@ extern "C" {
   VALUE srch_member(VALUE self, VALUE key);
   VALUE srch_common_prefix_search(VALUE self, VALUE key);
   VALUE srch_each_common_prefix(VALUE self, VALUE key);
-  VALUE srch_each(VALUE self);
+  VALUE srch_each(int argc, VALUE *argv, VALUE self);
   VALUE srch_size(VALUE self);
 
   void Init_doar(void) {
@@ -85,7 +87,7 @@ extern "C" {
     rb_define_method(cSrch, "member?", (VALUE (*)(...))srch_member, 1);
     rb_define_method(cSrch, "common_prefix_search", (VALUE (*)(...))srch_common_prefix_search, 1);
     rb_define_method(cSrch, "each_common_prefix", (VALUE (*)(...))srch_each_common_prefix, 1);    
-    rb_define_method(cSrch, "each", (VALUE (*)(...))srch_each, 0);
+    rb_define_method(cSrch, "each", (VALUE (*)(...))srch_each, -1);
     rb_define_method(cSrch, "size", (VALUE (*)(...))srch_size, 0);
   }
   
@@ -134,10 +136,21 @@ extern "C" {
     return Qnil;
   }
 
-  VALUE srch_each(VALUE self) {
+  VALUE srch_each(int argc, VALUE *argv, VALUE self){
+    VALUE root_str;
+    VALUE omit_base;
+    rb_scan_args(argc,argv,"02",&root_str,&omit_base);
+    
     Doar::Searcher* ptr;
     Data_Get_Struct(self, Doar::Searcher, ptr); 
-    ptr->children(ptr->root_node(), EachAllKey(*ptr));
+    if(root_str==Qnil) {
+      ptr->children(ptr->root_node(), YieldAllKey(*ptr));
+    } else {
+      Doar::Node root=ptr->root_node();
+      const char* base = StringValuePtr(root_str);
+      ptr->search(base,root);
+      ptr->children(root, YieldAllKey(*ptr, omit_base==Qtrue?"":base));
+    }
     return Qnil;
   }
 
