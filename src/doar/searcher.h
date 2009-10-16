@@ -79,7 +79,9 @@ namespace Doar {
 	return Node::INVALID;
       }
     }
-
+    
+    // TODO: 一文字以上... という制約はなくす
+    //     : 上のmethodはなくして、node版のtemplateを作る
     template<typename Callback>
     void common_prefix_search(const char* key, const Callback& fn) const {
       if(key[0]=='\0')
@@ -87,7 +89,7 @@ namespace Doar {
       
       Node node = root_node();
       unsigned offset=0;
-      bool first=true;
+      bool first=true;   // TODO: これはいらないかもしれない。
       KeyStream in(key);
       for(Code cd=in.read();; cd=in.read(), offset++, first=false) {
 	if(!first) {
