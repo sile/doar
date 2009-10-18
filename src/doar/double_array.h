@@ -7,15 +7,17 @@
 #include "dynamic_allocator.h"
 #include "../util/mmap_t.h"
 #include "builder.h"
+#include "searcher.h"
 
 namespace Doar {
   class DoubleArray {
     typedef DynamicAllocator Allocator;
-    friend class Builder;
 
   public:
     DoubleArray () { init(); }
 
+    /**********/
+    /* insert */
     bool insert(const char* key) {
       KeyStream in(key);
       NodeIndex idx=0;
@@ -44,31 +46,44 @@ namespace Doar {
       }
     }
 
-    Node search(const char* key) const {
-      Node node=root_node();
-      KeyStream in(key); 
-      for(Code cd=in.read();; cd=in.read()) {
-	const NodeIndex idx = node.next_index(cd);
-	if(idx >= base.size() || idx >= chck.size())
-	  return Node::INVALID;
+    /**********/
+    /* search */
+    Node root_node() const { return srch().root_node(); }
+    Node search(const char* key) const { return srch().search(key); }
+    Node search(const char* key, Node& root_node) const { return srch().search(key,root_node); }
+    
+    template<typename Callback>
+    void common_prefix_search(const char* key, Node root_node, const Callback& fn) const
+    { return srch().common_prefix_search(key,root_node,fn); }
 
-	node = base[idx];
-	if(cd==chck[idx]) 
-	  if(!node.is_leaf())                      continue;
-	  else if(in.eos() || key_exists(in,node)) return node;
-	return Node::INVALID;
-      } 
-    }    
+    template<typename Callback>
+    void common_prefix_search(const char* key, const Callback& fn) const
+    { return srch().common_prefix_search(key,fn); }
 
-    Node root_node() const { return base[0]; }
-
-    bool save(const char* path) {
+    template<typename Callback>
+    void children(Node parent, const Callback& fn) const { return srch().children(parent,fn); }
+      
+    
+    /*****************/
+    /* save and load */
+    bool save(const char* path) const {
       Builder bld;
       bld.build(base,chck,tind,tail);
       return bld.save(path);
     }
 
-    // XXX: 
+    void clear() { init(); }
+
+    bool save_and_clear(const char* path) {
+      alloca.clear();
+      
+      Builder bld;
+      bld.build(base,chck,tind,tail);
+      init();
+      
+      return bld.save(path);      
+    }
+
     bool load(const char* path) {
       init();
 
@@ -81,28 +96,21 @@ namespace Doar {
       memcpy(&h,mm.ptr,sizeof(header));
 
       void* beg=static_cast<char*>(mm.ptr)+sizeof(header);
-      void* end=static_cast<unsigned*>(beg)+h.tind_size;
-      tind.assign(static_cast<unsigned*>(beg),static_cast<unsigned*>(end));
+      beg = assign(tind, static_cast<unsigned *>(beg), h.tind_size); 
+      beg = assign(base, static_cast<Node*>(beg), h.node_size);
+      beg = assign(chck, static_cast<unsigned char*>(beg), h.node_size);
+      beg = assign(tail, static_cast<char*>(beg), h.tail_size);
 
-      beg=end;
-      end=static_cast<Node*>(beg)+h.node_size;
-      base.assign(static_cast<Node*>(beg),static_cast<Node*>(end));
-
-      beg=end;
-      end=static_cast<unsigned char*>(beg)+h.node_size;
-      chck.assign(static_cast<unsigned char*>(beg),static_cast<unsigned char*>(end));
-      
-      beg=end;
-      end=static_cast<char*>(beg)+h.tail_size;
-      tail.assign(static_cast<char*>(beg),static_cast<char*>(end));
-
-      //
       alloca.restore_condition(base.data(),chck.data(),h.node_size);
-      
       return true;
     }
-    
+
+    /*********/
+    /* other */
+    unsigned size() const { return tind.size(); }
+
   private:
+    // TODO: 
     void init() {
       base.clear();
       base.resize(0xFFFF);
@@ -116,6 +124,10 @@ namespace Doar {
       tail.clear();
       tail += '\0';
       tail.reserve(0xFFFF);
+    }
+
+    const SearcherBase srch() const {
+      return SearcherBase(base.data(),chck.data(),tind.data(),tail.data());
     }
 
     bool key_exists(const KeyStream in, const Node n) const {
@@ -207,8 +219,6 @@ namespace Doar {
     }
     
     void modify_nodes(NodeIndex idx, NodeIndex new_base, const CodeList& codes) {
-      assert(base[idx].valid()); // XXX: for dev
-
       NodeIndex old_base = base[idx].base();
       alloca.x_free(old_base);
 
@@ -228,7 +238,13 @@ namespace Doar {
 	alloca.free(old_node);
       }
     }
-    
+
+    template <class T>
+    typename T::value_type* assign(T& array, typename T::value_type* beg, unsigned size) {
+      typename T::value_type* end = beg+size;
+      array.assign(beg,end);
+      return end;
+    }
 
   private:
     Allocator alloca;

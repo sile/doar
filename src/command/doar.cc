@@ -21,6 +21,10 @@ private:
   unsigned beg;
 };
 
+void print_common_prefix(const char* key, unsigned len, unsigned id) {
+  std::cout << " #"<< id <<": "<<std::string(key,key+len)<<" ["<<len<<"]"<< std::endl;	  
+}
+
 
 int main(int argc, char** argv) {
   if(argc != 2) {
@@ -47,19 +51,13 @@ int main(int argc, char** argv) {
     case '+':
       // common prefix search
       {
-	Doar::Node root_node = srch.root_node();
-	unsigned offset=0;
-	std::string key =  word.substr(0,word.size()-1);
-	while((node=srch.common_prefix_search(key.c_str(), offset, root_node)).valid()) {
-	  std::cout << " #"<<node.id()<<": "<<word.substr(0,offset)<<" ["<<offset<<"]"<< std::endl;	  
-	}
+	srch.common_prefix_search(word.c_str(), print_common_prefix);
       }
       break;
     case '~':
       {
 	std::string key =  word.substr(0,word.size()-1);
-	print_lattice pl(srch,key,0);
-	srch.common_prefix_search(key.c_str(), pl);
+	srch.common_prefix_search(key.c_str(), print_lattice(srch,key,0));
       }
       break;
     default:

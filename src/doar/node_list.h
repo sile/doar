@@ -1,18 +1,18 @@
 #ifndef DOAR_NODE_LIST_H
 #define DOAR_NODE_LIST_H
 
+#include "types.h"
 #include "node.h"
 #include <vector>
 
+// TODO: 整理
 namespace Doar {
   class BaseList : public std::vector<Node> {
   public:
     BaseList() : std::vector<Node>(0x10000) {}
     
     Node& at(unsigned index) {
-      while(index >= size()) {
-	resize(size()*2);
-      }
+      for(; index >= size()-CODE_LIMIT; resize(size()*2));
       return operator[](index);
     }
 
@@ -27,9 +27,7 @@ namespace Doar {
     ChckList() { resize(0x10000); }
 
     unsigned char& at(unsigned index) {
-      while(index >= size()) {
-	resize(size()*2);
-      }
+      for(; index >= size()-CODE_LIMIT; resize(size()*2));
       return operator[](index);
     }
 

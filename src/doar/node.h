@@ -12,6 +12,7 @@ namespace Doar{
   private:
     friend class Builder;
     friend class Searcher;
+    friend class SearcherBase;
     friend class DoubleArray;
     friend class DynamicAllocator; // XXX:
 

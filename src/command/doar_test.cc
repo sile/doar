@@ -8,7 +8,7 @@ int main(int argc, char** argv) {
     std::cerr <<"Usage: "<<argv[0]<<" <doar-index-file> <word-list-file> [loop-count]" << std::endl;
     return 1;
   }
-
+  
   Doar::Searcher srch(argv[1]);
   if(!srch) {
     std::cerr <<"Can't open file: "<<argv[1] << std::endl;

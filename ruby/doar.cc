@@ -34,14 +34,14 @@ namespace {
     YieldAllKey(const Doar::Searcher& sh, const std::string& base) 
       : srch(sh), buf(base), len(base.size()) {}
 
-    void operator() (char c, Doar::Node parent) const {
+    void operator() (char c, Doar::Node node, const char* tail) const {
       buf += c;
-      if(parent.is_leaf()) {
-	buf += srch.tail_ptr(parent); // XXX: tail_ptr
-	rb_yield_values(2,INT2FIX(parent.id()), rb_str_new2(buf.c_str()));
+      if(node.is_leaf()) {
+	buf += tail;
+	rb_yield_values(2,INT2FIX(node.id()), rb_str_new2(buf.c_str()));
       } else {
 	len++;
-	srch.children(parent,*this);
+	srch.children(node,*this);
 	len--;
       }
       // XXX: std::stringでは小さくresizeしても確保したメモリが解放されないと仮定した処理

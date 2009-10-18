@@ -20,6 +20,11 @@ namespace Doar {
   public:
     DynamicAllocator() { init(); }
     
+    void clear() { 
+      lnk.clear();
+      bset.clear();
+    }
+
     void init(unsigned init_size=0x10000) {
       assert(init_size > 1);
       
