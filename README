@@ -1,19 +1,26 @@
 [概要]
 Doarは、DoubleArrayの構築・検索を行うためのC++ライブラリです。
 
-現在(2009/10/08)で実装されている機能は以下の通りです。
- ・ソート済みのキーセットから、DoubleArrayを構築し、ファイルに保存する
+現在(2009/10/18)で実装されている機能は以下の通りです。
+ ・DoubleArrayの構築・保存
+  ・ソート済みのキーセットから、DoubleArrayを構築  ※ 構築時の使用メモリ容量が少ない
+  ・任意の順番のキーセットから、DoubleArrayを構築
+  ・構築したDoubleArrayをファイルに保存
+  ・一度保存したデータを読み込んで、更新(要素追加)、再保存
  ・上で作成したDoubleArrayデータから、キーを検索する
- ・各キーを、0から始まるユニークなIDにマッピング
+ ・各キーを、0から始まるユニークなIDにマッピング (IDは挿入順で割り振られる)
+
+ ・Rubyバインディング  ※ 現在は、データ読込・検索のみ
 
 
 [環境]
-・現在(2009/10/08)は、unix,32bit(sizeof(int)==4)、環境を前提としています
+・現在(2009/10/18)は、unix,32bit(sizeof(int)==4)、環境を前提としています
 
 
 [使い方]
 ・makeでサンプルコマンドをコンパイル
-　・mkdoar:    DoubleArray構築コマンド
+　・mkdoar:    DoubleArray構築コマンド  ※ ソート済みのファイルのみが対象
+　・mkddar:    DoubleArray構築コマンド  ※ 任意順のファイルに対応。 後でバージョンでmkdoarコマンドにマージする予定
 　・doar:      簡易検索コマンド (通常検索, common-prefix検索)
 　・doar_test: 構築したDoubleArrayのテスト & ベンチマークコマンド
 ・具体的な使い方は、src/comman/以下のファイルを参照してください
@@ -24,12 +31,18 @@ namespace Doar {
   //=== ファイル: src/doar/builder.h ===
   class Builder {
     // 引数のファイル(ソート済み)から、DoubleArrayを構築する
+    // ※ ソートされていないファイルが渡された場合の動作は未定義です
     bool build(const char* filepath);
+
     // 引数の文字列配列(ソート済み)から、DoubleArrayを構築する
+    // ※ ソートされていない配列が渡された場合の動作は未定義です
     bool build(const char** strs, unsigned str_count);
     
     // 引数のファイルにDoubleArrayを保存する
     bool save(const char* filepath);    
+
+    // DoubleArrayに格納されているキー数を取得する
+    unsigned size() const;
   };
 
   //=== ファイル: src/doar/node.h ===
@@ -60,31 +73,113 @@ namespace Doar {
     Node search(const char* key) const;
 
     // 初期ノード(root_node)を指定して、検索を行う
-    // root_nodeには、最後に使われた親ノードが格納される
+    // root_nodeには、最後に使われた親ノードが格納される ※ 終端ノードで一致した場合は、node.is_leaf()==trueとなる
     Node search(const char* key, Node &root_node) const;
-
-    // common-prefix検索を行う
-    // 初期ノード(root_node)およびキーの検索開始位置(offset)を指定して、common-prefix検索を行う
-    // キーの途中で一致するノードがあった場合は、検索は中断され、そのノードが返される
-    // offsetには最後に使われたキーの位置が、root_nodeには最後に使われた親ノードが、格納される
-    // offset=strlen(key)の場合、root_node.is_leaf()の場合は、常に検索に失敗する。
-    // ※ searchメソッドとは異なり、空文字列に対する検索は常に失敗する。(= 最低でも一文字以上一致する必要がある。)
-    Node common_prefix_search(const char* key, unsigned& offset, Node& root_node) const;
 
     // common-prefix検索(走査)を行う
     // fnは、void fn(const char* key, unsigned key_offset, unsigned id)形式のファンクタ
     // fnは、keyに一致するノードが見つかった場合に、その都度呼び出される
+    //  ※ 現在、fnはconst指定されているので、fnが関数オブジェクトで、かつ可変メンバを使いたい場合は、そのメンバにmutableを指定して下さい
     template<typename Callback>
-    void common_prefix_search(const char* key, Callback& fn) const;
+    void common_prefix_search(const char* key, const Callback& fn) const;
+
+    // common-prefix検索(走査)を行う
+    // root_nodeを指定することで検索を開始するノードが指定できる
+    // fnは、void fn(const char* key, unsigned key_offset, unsigned id, Node node)形式のファンクタ
+    //   fnの引数のnodeは、一致したノードの親ノード  ※ 終端ノードで一致した場合は、node.is_leaf()==trueとなる
+    // fnは、keyに一致するノードが見つかった場合に、その都度呼び出される
+    template<typename Callback>
+    void common_prefix_search(const char* key, Node root_node, const Callback& fn) const;
     
     // parentの子ノード(のindex)を、走査する
-    // fnは、 void fn(char arc_char, Node child_node)形式のファンクタ
+    // fnは、 void fn(char arc_char, Node child_node, const char* tail)形式のファンクタ
+    //  child_node.is_leaf()の場合は、tailには遷移文字に続く文字列へのポインタが渡される (それ以外はNULL)
     template<typename Callback>
-    void children(Node parent, Callback& fn) const;
-    
+    void children(Node parent, const Callback& fn) const;
   };
+
+  //=== ファイル: src/doar/double_array.h ===
+  class DoubleArray {
+    DoubleArray();
+
+    // keyをDoubleArrayに追加する
+    //  ※ keyはNULL終端で、途中に値が0xFFの文字を含むことはできない
+    // 既にキーが挿入されている場合は、falseを返す
+    bool insert(const char* key); 
+
+
+    // Searcherクラスの同メソッドと同様に働く
+    // ただし、検索系のメソッドは、Searcherクラスのそれの方が最適化されている可能性がある
+    unsigned size() const;
+    Node root_node() const;
+    Node search(const char* key) const;
+    Node search(const char* key, Node &root_node) const;
+    template <typename Callback>
+    void common_prefix_search(const char* key, Callback& fn) const;
+    template <typename Callback>
+    void common_prefix_search(const char* key, Node root_node, Callback& fn) const;
+    template <typename Callback>
+    void children(Node parent, const Callback& fn) const;
+
+
+    // pathに構築したtrieデータを保存する
+    bool save(const char* path);
+    
+    // データを初期化する
+    void clear();
+
+    // pathに構築したtrieデータを保存してから、データを初期化する
+    // saveメソッドに比べて使用メモリ量が少なくて済む。  ※ 現時点では最大で size()*2*8 byte程度の節約となる
+    bool save_and_clear(const char* path);
+
+    // pathからtrieデータを読み込む
+    // 読み込んだ後は、そのデータに対して、さらにinsertを行うことが可能
+    //   ※ ただし、挿入効率は、ゼロから構築したtrieに比べて劣る
+    bool load(const char* path);
+  }  
 }
 
+
+[Ruby 簡易API & 使用例]
+## インストール方法
+# ruby extconf.rb
+# make
+# sudo make install
+
+require "doar"
+trie = Doar::Searcher.new(".../doar.dat")
+
+trie.size  
+--> 1000000 # キー数
+
+trie.member?("形態素")  
+--> true
+
+trie["形態素"] 
+--> 10  # ID
+
+trie["morpheme"]
+--> nil # trie.member?("...")==falseの場合
+
+trie.common_prefix_search("形態素")
+--> [[368117, 3], [368161, 6], [368162, 9]]  # [ID, 一致した文字列の位置]の配列
+
+trie.each_common_prefix("形態素"){|id,pos|
+  puts "#{id}: #{'形態素'[0,pos]}"
+}
+368117: 形
+368161: 形態
+368162: 形態素
+--> nil
+
+trie.each{|id, key|  # 格納されている全てのキーをiterate
+  # ...
+}
+
+trie.each("日本"){|id, key| # "日本"で始める全てのキーをiterate
+  # keyは、先頭に"日本"という文字列を必ず含む
+  # 第二引数にfalseを渡した場合、共通(第一引数)部分が除去された文字列が渡される
+}
 
 [TODO]
 ・要素の動的更新(追加・削除)に対応  ※ namespaceは現状のものとは分ける?

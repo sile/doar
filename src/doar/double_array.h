@@ -8,6 +8,7 @@
 #include "../util/mmap_t.h"
 #include "builder.h"
 #include "searcher.h"
+#include "shrink_tail.h"
 
 namespace Doar {
   class DoubleArray {
@@ -66,22 +67,25 @@ namespace Doar {
     
     /*****************/
     /* save and load */
-    bool save(const char* path) const {
+    bool save(const char* path) {
+      ShrinkTail(tail,tind).shrink();
+
       Builder bld;
       bld.build(base,chck,tind,tail);
-      return bld.save(path);
+      return bld.save(path,false);
     }
 
     void clear() { init(); }
 
     bool save_and_clear(const char* path) {
+      ShrinkTail(tail,tind).shrink();
       alloca.clear();
       
       Builder bld;
       bld.build(base,chck,tind,tail);
       init();
       
-      return bld.save(path);      
+      return bld.save(path,false);      
     }
 
     bool load(const char* path) {

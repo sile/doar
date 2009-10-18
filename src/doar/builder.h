@@ -34,9 +34,9 @@ namespace Doar {
       build_impl(keys,alloca,0,keys.size(),0);
       return true;
     }
-    
+
+    // TODO: friend?
     bool build(const BaseList& src_base, const ChckList& src_chck, const TindList& src_tind, const Tail& src_tail) {
-      // TOOD: buildする前に、trieを軽量化したい -> build後に使えなくする? -> coerce_xxx
       Allocator alloca;
       init(src_tind.size());
       tind=src_tind;
@@ -45,7 +45,7 @@ namespace Doar {
       return true;
     }
 
-    bool save(const char* filepath) {
+    bool save(const char* filepath, bool do_shrink_tail=true) {
       // [format]
       // header{
       //  node-size: 4byte
@@ -60,8 +60,9 @@ namespace Doar {
       int f = creat(filepath, 0666);
       if(f==-1)
 	return false;
-      
-      ShrinkTail(tail,tind).shrink();
+
+      if(do_shrink_tail)
+	ShrinkTail(tail,tind).shrink();
 
       header h={0,tind.size(),tail.size()};
       
@@ -130,12 +131,11 @@ namespace Doar {
       }
 
       CodeList cs;
-      // trie.correspond_codes(old_root,cs);
       {
 	NodeIndex beg = old_root.base();
-	for(Code i=0; i < CODE_LIMIT; i++)
-	  if(i == src_chck[beg+i])
-	    cs.push_back(i);
+	for(Code c=0; c < CODE_LIMIT; c++)
+	  if(c == src_chck[beg+c])
+	    cs.push_back(c);
       }
       
       NodeIndex x = alloca.x_check(cs);
