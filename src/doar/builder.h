@@ -141,7 +141,7 @@ namespace Doar {
       }
       
       NodeIndex x = alloca.x_check(cs);
-      for(uint32 i=0; i < cs.size(); i++)
+      for(std::size_t i=0; i < cs.size(); i++)
 	build_impl(src_base, src_chck, alloca, src_base[old_root.next_index(cs[i])], set_node(cs[i],new_root_idx,x));
     }
 
@@ -169,7 +169,7 @@ namespace Doar {
       tail += '\0';
     }
 
-    void init(uint32 key_num) {
+    void init(std::size_t key_num) {
       base.clear();
       base.resize(key_num*2);
       chck.clear();

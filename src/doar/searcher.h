@@ -118,7 +118,7 @@ namespace Doar {
 
     bool key_including(const KeyStream in, const Node n, uint32& key_offset) const {
       const char* ptr=tail+tind[n.tail_index()];
-      uint32 len = strlen(ptr);
+      std::size_t len = strlen(ptr);
       key_offset += len + 1;
       return strncmp(in.rest(), ptr, len)==0;
     }
