@@ -11,7 +11,7 @@ namespace Doar {
     struct Link {
       Link(NodeIndex i) : idx(i), next(NULL) {}
       
-      NodeIndex append(NodeIndex beg_idx, unsigned num) {
+      NodeIndex append(NodeIndex beg_idx, uint32 num) {
 	Link* cur=this;
 	while(cur->next) cur=cur->next;
 	
@@ -37,8 +37,8 @@ namespace Doar {
     };
     
     typedef std::vector<bool> Bitset;
-    static const unsigned PER_LINK_SIZE=0x10000;
-    static const unsigned TRY_ALLOC_THRESHOLD=0x80;
+    static const uint32 PER_LINK_SIZE=0x10000;
+    static const uint32 TRY_ALLOC_THRESHOLD=0x80;
     
   public:
     // MEMO: bset.size()はPER_LINK_SIZEの倍数である必要がある
@@ -67,7 +67,7 @@ namespace Doar {
       Code min_cd = codes.front();
       
       for(; cur->idx <= min_cd; prev=cur, cur=cur->next) assert(cur);
-      for(unsigned cnt=0; cur; prev=cur,cur=cur->next,cnt++) {
+      for(uint32 cnt=0; cur; prev=cur,cur=cur->next,cnt++) {
 	NodeIndex x = cur->idx - min_cd;
 	if(!bset[x] && can_allocate(cur, codes, x)) {
 	  if(cnt>TRY_ALLOC_THRESHOLD)
@@ -89,7 +89,7 @@ namespace Doar {
   private:
     bool can_allocate(Link* cur, const CodeList& codes, NodeIndex x) const {
       cur=cur->next;
-      for(unsigned i=1;i < codes.size(); i++) {
+      for(uint32 i=1;i < codes.size(); i++) {
 	for(; cur && cur->idx < x+codes[i]; cur=cur->next);
 	if(!cur || cur->idx > x+codes[i])
 	  return false;
@@ -99,7 +99,7 @@ namespace Doar {
     
     void alloc(Link* prev, const CodeList& codes, NodeIndex x) {
       prev->remove_next();
-      for(unsigned i=1; i < codes.size(); i++) {
+      for(uint32 i=1; i < codes.size(); i++) {
 	for(; prev->next->idx < x+codes[i]; prev=prev->next);
 	assert(prev->next->idx == x+codes[i]);
 	prev->remove_next();

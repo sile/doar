@@ -4,21 +4,31 @@
 #include <vector>
 #include <string>
 
+// TODO: include common header?
+#include <algorithm>
+#include "../util/mmap_t.h"
+
+// TODO: create mmap_t.h and win_mmap_t.h
+
 namespace Doar {
-  class Node;
+  // NOTE: Please ...
+  typedef int       int32;
+  typedef unsigned uint32;
   
-  typedef unsigned NodeIndex;
-  typedef unsigned TailIndex;
-  typedef unsigned Code;
+  class Node;
+  typedef unsigned char Chck;
+  typedef uint32 NodeIndex;
+  typedef uint32 TailIndex;
+  typedef uint32 Code;
   
   typedef std::vector<Code>      CodeList;
-  typedef std::vector<unsigned>  TindList;
+  typedef std::vector<uint32>  TindList;
   typedef std::string            Tail;
 
   struct header {
-    unsigned node_size; // BASE and CHECK array size
-    unsigned tind_size; // TAIL index array size  # TIND[BASE[i]] -> TAIL index
-    unsigned tail_size; // TAIL array size
+    uint32 node_size; // BASE and CHECK array size
+    uint32 tind_size; // TAIL index array size  # TIND[BASE[i]] -> TAIL index
+    uint32 tail_size; // TAIL array size
   };
 
   static const Code CODE_LIMIT    = 0xFF;

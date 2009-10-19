@@ -100,9 +100,9 @@ namespace Doar {
       memcpy(&h,mm.ptr,sizeof(header));
 
       void* beg=static_cast<char*>(mm.ptr)+sizeof(header);
-      beg = assign(tind, static_cast<unsigned *>(beg), h.tind_size); 
+      beg = assign(tind, static_cast<uint32 *>(beg), h.tind_size); 
       beg = assign(base, static_cast<Node*>(beg), h.node_size);
-      beg = assign(chck, static_cast<unsigned char*>(beg), h.node_size);
+      beg = assign(chck, static_cast<Chck*>(beg), h.node_size);
       beg = assign(tail, static_cast<char*>(beg), h.tail_size);
 
       alloca.restore_condition(base.data(),chck.data(),h.node_size);
@@ -111,7 +111,7 @@ namespace Doar {
 
     /*********/
     /* other */
-    unsigned size() const { return tind.size(); }
+    uint32 size() const { return tind.size(); }
 
   private:
     // TODO: 
@@ -244,7 +244,7 @@ namespace Doar {
     }
 
     template <class T>
-    typename T::value_type* assign(T& array, typename T::value_type* beg, unsigned size) {
+    typename T::value_type* assign(T& array, typename T::value_type* beg, uint32 size) {
       typename T::value_type* end = beg+size;
       array.assign(beg,end);
       return end;

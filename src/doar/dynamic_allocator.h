@@ -8,14 +8,14 @@
 namespace Doar {
   class DynamicAllocator {
     struct Link {
-      Link(unsigned p, unsigned n) : prev(p), next(n) {}
+      Link(uint32 p, uint32 n) : prev(p), next(n) {}
 
-      unsigned prev;
-      unsigned next;
+      uint32 prev;
+      uint32 next;
     };
     typedef std::vector<Link> LinkList;
     typedef std::vector<bool> Bset;
-    static const unsigned TRY_ALLOC_THRESHOLD=0x80;
+    static const uint32 TRY_ALLOC_THRESHOLD=0x80;
 
   public:
     DynamicAllocator() { init(); }
@@ -25,7 +25,7 @@ namespace Doar {
       bset.clear();
     }
 
-    void init(unsigned init_size=0x10000) {
+    void init(uint32 init_size=0x10000) {
       assert(init_size > 1);
       
       lnk.clear();
@@ -39,8 +39,8 @@ namespace Doar {
       beg_idx=CODE_LIMIT;
     }
     
-    void restore_condition(Node* base, unsigned char* chck, unsigned node_size) {
-      init(static_cast<unsigned>(node_size*1.5));
+    void restore_condition(const Node* base, const Chck* chck, uint32 node_size) {
+      init(static_cast<uint32>(node_size*1.5));
 
       for(NodeIndex i=0; i < node_size; i++) {
 	if(!base[i].is_leaf())  // XXX: INVALID is leaf という条件に依存している。 TODO: ドキュメント化
@@ -90,7 +90,7 @@ namespace Doar {
       assert(beg_idx>=CODE_LIMIT);
       
       NodeIndex cur = lnk[beg_idx].next;
-      for(unsigned cnt=0;;  cur=lnk[cur].next, cnt++) {
+      for(uint32 cnt=0;;  cur=lnk[cur].next, cnt++) {
 	assert(cur);
 	
 	NodeIndex x = cur-codes.front();
@@ -99,7 +99,7 @@ namespace Doar {
 	  if(cnt > TRY_ALLOC_THRESHOLD)
 	    beg_idx=lnk[beg_idx].next;
 	  
-	  for(unsigned i=0; i<codes.size(); i++)
+	  for(uint32 i=0; i<codes.size(); i++)
 	    alloc(x+codes[i]);
 	
 	  return x;
@@ -125,7 +125,7 @@ namespace Doar {
     
   private:
     bool can_allocate(const CodeList& codes, NodeIndex x) const {
-      for(unsigned i=1; i < codes.size(); i++)
+      for(uint32 i=1; i < codes.size(); i++)
 	if(x+codes[i] < lnk.size() && lnk[x+codes[i]].next==0)
 	  return false;
       return true;

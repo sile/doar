@@ -11,8 +11,7 @@ namespace Doar {
   // TODO: comment for assumption
   class SearcherBase {
   public:
-    SearcherBase(const Node* base, const unsigned char* chck, 
-		 const unsigned* tind, const char* tail) 
+    SearcherBase(const Node* base, const Chck* chck, const uint32* tind, const char* tail) 
       : base(base),chck(chck),tind(tind),tail(tail) {}
 
    Node search(const char* key) const {
@@ -50,7 +49,7 @@ namespace Doar {
     template<typename Callback>
     void common_prefix_search(const char* key, const Callback& fn) const {
       Node node = root_node();
-      unsigned offset=0;
+      uint32 offset=0;
       KeyStream in(key);
       
       for(Code cd=in.read();; cd=in.read(), offset++) {
@@ -76,7 +75,7 @@ namespace Doar {
 	return;
 
       Node node = root_node;
-      unsigned offset=0;
+      uint32 offset=0;
       KeyStream in(key);
       
       for(Code cd=in.read();; cd=in.read(), offset++) {
@@ -117,18 +116,18 @@ namespace Doar {
       return strcmp(in.rest(), tail+tind[n.tail_index()])==0;
     }
 
-    bool key_including(const KeyStream in, const Node n, unsigned& key_offset) const {
+    bool key_including(const KeyStream in, const Node n, uint32& key_offset) const {
       const char* ptr=tail+tind[n.tail_index()];
-      unsigned len = strlen(ptr);
+      uint32 len = strlen(ptr);
       key_offset += len + 1;
       return strncmp(in.rest(), ptr, len)==0;
     }
    
   protected:
-    const Node*          base; // BASE array
-    const unsigned char* chck; // CHECK array
-    const unsigned*      tind; // TAIL index array
-    const char*          tail; // TAIL array
+    const Node*   base; // BASE array
+    const Chck*   chck; // CHECK array
+    const uint32* tind; // TAIL index array
+    const char*   tail; // TAIL array
   };
 
   class Searcher : public SearcherBase {
@@ -139,14 +138,14 @@ namespace Doar {
 
       // TODO: format check
       memcpy(&h,mm.ptr,sizeof(header));
-      tind = reinterpret_cast<const unsigned*>(static_cast<char*>(mm.ptr)+sizeof(header));
+      tind = reinterpret_cast<const uint32*>(static_cast<char*>(mm.ptr)+sizeof(header));
       base = reinterpret_cast<const Node*>(tind+h.tind_size);
-      chck = reinterpret_cast<const unsigned char*>(base+h.node_size);
+      chck = reinterpret_cast<const Chck*>(base+h.node_size);
       tail = reinterpret_cast<const char*>(chck + h.node_size);
     }
 
     operator bool() const { return (bool)mm; }
-    unsigned size() const { return h.tind_size; }
+    uint32   size() const { return h.tind_size; }
 
   private:
     const mmap_t mm;

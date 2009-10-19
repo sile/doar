@@ -11,7 +11,7 @@ namespace Doar {
   public:
     BaseList() : std::vector<Node>(0x10000) {}
     
-    Node& at(unsigned index) {
+    Node& at(uint32 index) {
       for(; index >= size()-CODE_LIMIT; resize(size()*2));
       return operator[](index);
     }
@@ -22,21 +22,21 @@ namespace Doar {
     }
   };
 
-  class ChckList : public std::vector<unsigned char> {
+  class ChckList : public std::vector<Chck> {
   public:
     ChckList() { resize(0x10000); }
 
-    unsigned char& at(unsigned index) {
+    Chck& at(uint32 index) {
       for(; index >= size()-CODE_LIMIT; resize(size()*2));
       return operator[](index);
     }
 
     void clear() {
-      std::vector<unsigned char>::clear();
+      std::vector<Chck>::clear();
       resize(0x10000);
     }
     
-    void resize(std::size_t new_size) { std::vector<unsigned char>::resize(new_size, VACANT_CODE); }
+    void resize(std::size_t new_size) { std::vector<Chck>::resize(new_size, VACANT_CODE); }
   };
 }
 

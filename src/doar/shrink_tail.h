@@ -14,7 +14,7 @@ namespace Doar {
       std::vector<ShrinkRecord> terminal_indices;
       terminal_indices.reserve(tind.size());
 
-      for(unsigned i=0; i < tind.size(); i++)
+      for(uint32 i=0; i < tind.size(); i++)
 	terminal_indices.push_back(ShrinkRecord(i,tail.data()+tind[i]));
       
       std::sort(terminal_indices.begin(), terminal_indices.end(), tail_gt);
@@ -24,7 +24,7 @@ namespace Doar {
       new_tail.reserve(tail.size()/2);
       new_tail += '\0';
 
-      for(unsigned i=0; i < terminal_indices.size(); i++) {
+      for(uint32 i=0; i < terminal_indices.size(); i++) {
 	const ShrinkRecord& p = terminal_indices[i];
 	
 	TailIndex tail_idx = new_tail.size();
@@ -41,9 +41,9 @@ namespace Doar {
 
   private:
     struct ShrinkRecord {
-      ShrinkRecord(unsigned i,const char* t) 
+      ShrinkRecord(uint32 i,const char* t) 
         : tind_idx(i),tail(t),tail_len(strlen(t)) {}
-      unsigned    tind_idx;
+      uint32      tind_idx;
       const char* tail;
       int         tail_len;
     };

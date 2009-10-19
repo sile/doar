@@ -6,6 +6,7 @@
 #include "node_list.h"
 #include "static_allocator.h"
 #include "shrink_tail.h"
+#include <cstdio>
 
 namespace Doar {
   class Builder {
@@ -24,7 +25,7 @@ namespace Doar {
       build_impl(keys,alloca,0,keys.size(),0);
       return true;
     }
-    bool build(const char** strs, unsigned str_count) {
+    bool build(const char** strs, uint32 str_count) {
       Allocator alloca;
       KeyStreamList keys(strs, str_count);
       // TODO: sort check
@@ -56,24 +57,25 @@ namespace Doar {
       // chck: node-size
       // tind: tind-size*4byte
       // tail: tail-size
-
-      int f = creat(filepath, 0666);
-      if(f==-1)
+      
+      FILE *f;
+      if((f=fopen(filepath,"wb"))==NULL)
 	return false;
-
+      
       if(do_shrink_tail)
 	ShrinkTail(tail,tind).shrink();
-
+      
+      // get size
       header h={0,tind.size(),tail.size()};
       
-      for(int i=chck.size()-1; i>=0; i--)
+      for(int32 i=chck.size()-1; i>=0; i--)
 	if(chck[i]!=VACANT_CODE) {
 	  h.node_size=i+1;
 	  break;
 	}
 
       // 範囲外アクセスを防ぐために調整する
-      for(unsigned i=0; i < h.node_size; i++) {
+      for(uint32 i=0; i < h.node_size; i++) {
 	Node n = base[i];
 	if(chck[i]!=VACANT_CODE && !n.is_leaf())
 	  if(n.base()+CODE_LIMIT-1 >= h.node_size)
@@ -82,30 +84,30 @@ namespace Doar {
       base.resize(h.node_size);
       chck.resize(h.node_size);
 
-      write(f,&h,sizeof(header));
-      write(f,tind.data(),h.tind_size*sizeof(unsigned));
-      write(f,base.data(),h.node_size*sizeof(Node));
-      write(f,chck.data(),h.node_size);
-      write(f,tail.data(),h.tail_size);
-      close(f);
+      fwrite(&h, sizeof(header), 1, f);
+      fwrite(tind.data(), sizeof(uint32), h.tind_size, f);
+      fwrite(base.data(), sizeof(Node), h.node_size, f);
+      fwrite(chck.data(), sizeof(Chck), h.node_size, f);
+      fwrite(tail.data(), sizeof(char), h.tail_size, f);
+      fclose(f);
       return true;
     }
 
-    unsigned size() const { return tind.size(); }
+    uint32 size() const { return tind.size(); }
     
   private:
-    void build_impl(KeyStreamList& keys, Allocator& alloca, unsigned beg, unsigned end, NodeIndex root_idx) {
+    void build_impl(KeyStreamList& keys, Allocator& alloca, uint32 beg, uint32 end, NodeIndex root_idx) {
       if(end-beg==1) {
 	insert_tail(keys[beg],root_idx);
 	return;
       }
 
-      std::vector<unsigned> end_list;
+      std::vector<uint32> end_list;
       CodeList cs;
       Code prev=VACANT_CODE;
 
       // 
-      for(unsigned i=beg; i < end; i++) {
+      for(uint32 i=beg; i < end; i++) {
 	Code cur = keys[i].read();
 	if(prev != cur) {
 	  cs.push_back(cur);
@@ -118,7 +120,7 @@ namespace Doar {
       
       //
       NodeIndex x = alloca.x_check(cs);
-      for(unsigned i=0; i<cs.size(); i++) 
+      for(uint32 i=0; i<cs.size(); i++) 
 	build_impl(keys, alloca,end_list[i],end_list[i+1], set_node(cs[i],root_idx,x));
     }
 
@@ -139,7 +141,7 @@ namespace Doar {
       }
       
       NodeIndex x = alloca.x_check(cs);
-      for(unsigned i=0; i < cs.size(); i++)
+      for(uint32 i=0; i < cs.size(); i++)
 	build_impl(src_base, src_chck, alloca, src_base[old_root.next_index(cs[i])], set_node(cs[i],new_root_idx,x));
     }
 
@@ -151,7 +153,7 @@ namespace Doar {
     }
 
     // XXX:
-    void insert_tail(NodeIndex node, unsigned tind_idx) {
+    void insert_tail(NodeIndex node, uint32 tind_idx) {
       base.at(node).set_tail_index(tind_idx);
     }
 
@@ -167,7 +169,7 @@ namespace Doar {
       tail += '\0';
     }
 
-    void init(unsigned key_num) {
+    void init(uint32 key_num) {
       base.clear();
       base.resize(key_num*2);
       chck.clear();
