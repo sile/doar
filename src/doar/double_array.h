@@ -214,7 +214,7 @@ namespace Doar {
 
     void correspond_codes(Node node, CodeList& result) const {
       NodeIndex beg = node.base(); 
-      NodeIndex end = std::min(beg+CODE_LIMIT, chck.size()-1);
+      NodeIndex end = std::min(beg+CODE_LIMIT, static_cast<NodeIndex>(chck.size()-1));
       
       for(NodeIndex i=beg; i < end; i++)
 	if(chck[i].verify(i-beg))

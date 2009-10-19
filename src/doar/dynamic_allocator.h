@@ -134,7 +134,7 @@ namespace Doar {
 
     void resize_link(NodeIndex hint=0) {
       lnk.back().next=lnk.size();
-      NodeIndex end = std::max(hint,lnk.size()*2);
+      NodeIndex end = std::max(hint,static_cast<NodeIndex>(lnk.size()*2));
       bset.resize(end);
 
       for(NodeIndex i=lnk.size(); i < end; i++) 

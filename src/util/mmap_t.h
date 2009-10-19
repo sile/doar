@@ -76,7 +76,7 @@ struct mmap_t {
   }
 
   operator bool () const 
-  { return reinterpret_cast<int>(ptr)!=-1; }
+  { return ptr!=reinterpret_cast<void*>(-1); }
 
   size_t size;
   void *ptr;
