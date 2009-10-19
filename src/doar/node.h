@@ -5,6 +5,7 @@ namespace Doar{
   struct Node {
     Node() : data(0xFFFFFFFF) {} // TODO: default == root_node にしてもいいかも
     unsigned id()  const { return tail_index(); }
+    //operator bool() const { data!=0xFFFFFFFF; }
     bool valid()   const { return data!=0xFFFFFFFF; }
     bool is_leaf() const { return data&0x80000000; } 
     static const Node INVALID;

@@ -104,7 +104,7 @@ namespace Doar {
       for(Code cd=0; cd < CODE_LIMIT; cd++)
 	if(cd==chck[parent.next_index(cd)]) {
 	  Node node = base[parent.next_index(cd)];
-	  fn(static_cast<char>(cd), node, node.is_leaf() ? tail+node.tail_index() : NULL);
+	  fn(static_cast<char>(cd), node, node.is_leaf() ? tail+tind[node.tail_index()] : NULL);
 	}
     }
 

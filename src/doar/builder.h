@@ -183,7 +183,7 @@ namespace Doar {
   private:
     BaseList base;
     ChckList chck;
-    TindList tind;
+    TindList tind; // TODO: replace to data array [chckに入れる?]
     Tail     tail; 
   };
 }
