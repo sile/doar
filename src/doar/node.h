@@ -1,7 +1,8 @@
 #ifndef DOAR_NODE_H
 #define DOAR_NODE_H
 
-// TODO: node_list.hとまとめる?
+#include "types.h"
+
 namespace Doar{
   class Node {
   public:
@@ -29,5 +30,23 @@ namespace Doar{
     uint32 data;
   };
   const Node Node::INVALID = Node();
+  
+  typedef Vector<Node,CODE_LIMIT> BaseList; // XXX:
+
+  
+  class Chck {
+  public:
+    Chck() : data(VACANT_CODE) {}
+    
+    bool vacant() const { return data==VACANT_CODE; }
+    bool verify(Code cd) const { return cd==data; }   // XXX:
+
+    void set_chck(Code cd) { data=cd; }
+    void set_chck(Chck ch) { data=ch.data; }
+  private:
+    unsigned char data;
+  };
+
+  typedef Vector<Chck,CODE_LIMIT> ChckList;
 }
 #endif

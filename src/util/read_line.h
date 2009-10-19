@@ -2,28 +2,27 @@
 #define READ_LINE_H
 
 #include <vector>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
+#include <cstdio>
 
 class ReadLine {
 public:
   ReadLine(const char* filepath) : buf(NULL),index(0) {
-    int f = open(filepath, O_RDONLY);
-    if(f==-1)
+    FILE* f;
+    if((f=fopen(filepath,"rb"))==NULL)
       return;
     
-    struct stat statbuf;
-    fstat(f, &statbuf);
-
-    buf = new char[statbuf.st_size+1];
-    ::read(f, buf, statbuf.st_size);
-    close(f);
-
-    buf[statbuf.st_size]='\0';
-
-    init(buf,buf+statbuf.st_size-1);
+    fseek(f,0,SEEK_END);
+    long file_size = ftell(f); // NOTE# file size limit: 2^(sizeof(long)-1)
+    fseek(f,0,SEEK_SET);
+    
+    if(file_size != -1){
+      buf = new char[file_size+1];
+      fread(buf, sizeof(char), file_size, f);
+      buf[file_size]='\0';
+      init(buf,buf+file_size-1);
+    }
+    
+    fclose(f);
   }
   ~ReadLine() {
     delete [] buf;

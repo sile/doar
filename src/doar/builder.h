@@ -3,9 +3,9 @@
 
 #include "types.h"
 #include "key_stream.h"
-#include "node_list.h"
 #include "static_allocator.h"
 #include "shrink_tail.h"
+#include "node.h"
 #include <cstdio>
 
 namespace Doar {
@@ -69,7 +69,7 @@ namespace Doar {
       header h={0,tind.size(),tail.size()};
       
       for(int32 i=chck.size()-1; i>=0; i--)
-	if(chck[i]!=VACANT_CODE) {
+	if(chck[i].vacant()==false) {
 	  h.node_size=i+1;
 	  break;
 	}
@@ -77,7 +77,7 @@ namespace Doar {
       // 範囲外アクセスを防ぐために調整する
       for(uint32 i=0; i < h.node_size; i++) {
 	Node n = base[i];
-	if(chck[i]!=VACANT_CODE && !n.is_leaf())
+	if(chck[i].vacant()==false && !n.is_leaf())
 	  if(n.base()+CODE_LIMIT-1 >= h.node_size)
 	    h.node_size = n.base()+CODE_LIMIT-1;
       }
@@ -136,7 +136,7 @@ namespace Doar {
       {
 	NodeIndex beg = old_root.base();
 	for(Code c=0; c < CODE_LIMIT; c++)
-	  if(c == src_chck[beg+c])
+	  if(src_chck[beg+c].verify(c))
 	    cs.push_back(c);
       }
       
@@ -148,7 +148,7 @@ namespace Doar {
     NodeIndex set_node(Code code, NodeIndex prev, NodeIndex x_node) {
       NodeIndex next = x_node+code;
       base.at(prev).set_base(x_node);
-      chck.at(next) = code;
+      chck.at(next).set_chck(code);
       return next;
     }
 

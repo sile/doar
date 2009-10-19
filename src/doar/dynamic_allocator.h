@@ -2,6 +2,7 @@
 #define DOAR_DYNAMIC_ALLOCATOR_H
 
 #include "types.h"
+#include "node.h"
 #include <vector>
 #include <assert.h>
 
@@ -46,7 +47,7 @@ namespace Doar {
 	if(!base[i].is_leaf())  // XXX: INVALID is leaf という条件に依存している。 TODO: ドキュメント化
 	  bset[base[i].base()].flip();
 	
-	if(chck[i] != VACANT_CODE)
+	if(chck[i].vacant()==false)
 	  alloc(i);
       }
     }

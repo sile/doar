@@ -1,7 +1,7 @@
 OPT=-O3 -Wall
 DOAR=src/doar
 CMD=src/command
-HEADERS=${DOAR}/key_stream.h ${DOAR}/node_list.h ${DOAR}/node.h ${DOAR}/searcher.h ${DOAR}/types.h ${DOAR}/static_allocator.h ${DOAR}/dynamic_allocator.h ${DOAR}/double_array.h ${DOAR}/shrink_tail.h ${DOAR}/builder.h
+HEADERS=${DOAR}/key_stream.h ${DOAR}/node.h ${DOAR}/searcher.h ${DOAR}/types.h ${DOAR}/static_allocator.h ${DOAR}/dynamic_allocator.h ${DOAR}/double_array.h ${DOAR}/shrink_tail.h ${DOAR}/builder.h ${DOAR}/vector.h
 
 all: bin/doar bin/mkdoar bin/doar_test bin/mkddar
 

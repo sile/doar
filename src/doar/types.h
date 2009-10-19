@@ -1,28 +1,26 @@
 #ifndef DOAR_TYPES_H
 #define DOAR_TYPES_H
 
-#include <vector>
 #include <string>
 
 // TODO: include common header?
 #include <algorithm>
 #include "../util/mmap_t.h"
-
-// TODO: create mmap_t.h and win_mmap_t.h
+#include "vector.h"
 
 namespace Doar {
-  // NOTE: Please ...
+  // NOTE: Please redef ...
   typedef int       int32;
   typedef unsigned uint32;
   
   class Node;
-  typedef unsigned char Chck;
+  class Chck;
   typedef uint32 NodeIndex;
   typedef uint32 TailIndex;
   typedef uint32 Code;
   
-  typedef std::vector<Code>      CodeList;
-  typedef std::vector<uint32>  TindList;
+  typedef Vector<Code>      CodeList;
+  typedef Vector<uint32>  TindList;
   typedef std::string            Tail;
 
   struct header {

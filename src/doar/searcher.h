@@ -21,7 +21,7 @@ namespace Doar {
 	const NodeIndex idx = node.next_index(cd);
 	node = base[idx];
 	
-	if(cd==chck[idx])
+	if(chck[idx].verify(cd))
 	  if(!node.is_leaf())                      continue;
 	  else if(in.eos() || key_exists(in,node)) return node;
 	return Node::INVALID;
@@ -38,7 +38,7 @@ namespace Doar {
 	const NodeIndex idx = node.next_index(cd);
 	node = base[idx];
 	
-	if(cd==chck[idx])
+	if(chck[idx].verify(cd))
 	  if(!node.is_leaf())           continue;
 	  else if(in.eos())             return node;
 	  else if(key_exists(in, node)) return root_node=node;
@@ -54,15 +54,15 @@ namespace Doar {
       
       for(Code cd=in.read();; cd=in.read(), offset++) {
 	const NodeIndex terminal_idx = node.next_index(TERMINAL_CODE);
-	if(TERMINAL_CODE==chck[terminal_idx]) {
+	if(chck[terminal_idx].verify(TERMINAL_CODE)) {
 	  fn(key,offset,base[terminal_idx].id());
 	  if(cd==TERMINAL_CODE)
 	    return;
-	  }
+	}
 	
 	const NodeIndex idx = node.next_index(cd);
 	node = base[idx];
-	if(cd==chck[idx])
+	if(chck[idx].verify(cd))
 	  if(!node.is_leaf())                    continue;
 	    else if(key_including(in,node,offset)) fn(key,offset,node.id());
 	return;
@@ -80,7 +80,7 @@ namespace Doar {
       
       for(Code cd=in.read();; cd=in.read(), offset++) {
 	const NodeIndex terminal_idx = node.next_index(TERMINAL_CODE);
-	if(TERMINAL_CODE==chck[terminal_idx]) {
+	if(chck[terminal_idx].verify(TERMINAL_CODE)){
 	  fn(key,offset,base[terminal_idx].id(),node);
 	  if(cd==TERMINAL_CODE)
 	    return;
@@ -88,7 +88,7 @@ namespace Doar {
 	
 	const NodeIndex idx = node.next_index(cd);
 	node = base[idx];
-	if(cd==chck[idx])
+	if(chck[idx].verify(cd))
 	  if(!node.is_leaf())                    continue;
 	  else if(key_including(in,node,offset)) fn(key,offset,node.id(),node);
 	return;
@@ -101,7 +101,7 @@ namespace Doar {
 	return;
       
       for(Code cd=0; cd < CODE_LIMIT; cd++)
-	if(cd==chck[parent.next_index(cd)]) {
+	if(chck[parent.next_index(cd)].verify(cd)) {
 	  Node node = base[parent.next_index(cd)];
 	  fn(static_cast<char>(cd), node, node.is_leaf() ? tail+tind[node.tail_index()] : NULL);
 	}

@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
       if(cnt % interval == 0)
 	std::cerr << " # " << cnt << std::endl;
 
-      if(!srch.search(line).valid())
+      if(!srch.search(line))
 	err++;
     }
   }

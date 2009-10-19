@@ -62,7 +62,7 @@ int main(int argc, char** argv) {
       break;
     default:
       // default search
-      if((node=srch.search(word.c_str())).valid())
+      if((node=srch.search(word.c_str())))
 	std::cout <<" #"<<node.id()<<": "<<word<<std::endl;
     }
   }

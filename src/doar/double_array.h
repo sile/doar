@@ -3,7 +3,7 @@
 
 #include "types.h"
 #include "key_stream.h"
-#include "node_list.h"
+#include "node.h"
 #include "dynamic_allocator.h"
 #include "../util/mmap_t.h"
 #include "builder.h"
@@ -31,7 +31,7 @@ namespace Doar {
 	  alloca.alloc(next_idx);
 	  set_check_and_insert_tail(in,cd,next_idx);
 	  return true;
-	} else if(cd == chck[next_idx]) {
+	} else if(chck[next_idx].verify(cd)) {
 	  if(next.is_leaf()) {
 	    if(in.eos() || key_exists(in, next))
 	      return false;
@@ -117,17 +117,16 @@ namespace Doar {
     // TODO: 
     void init() {
       base.clear();
-      base.resize(0xFFFF);
+      base.resize(0x10000);
       chck.clear();
-      chck.resize(0xFFFF);
+      chck.resize(0x10000);
 
-      base[0].set_base(1);
+      base[0].set_base(1);  // XXX: ???
       
-      chck.clear();
       tind.clear();
       tail.clear();
       tail += '\0';
-      tail.reserve(0xFFFF);
+      tail.reserve(0x10000);
     }
 
     const SearcherBase srch() const {
@@ -178,7 +177,7 @@ namespace Doar {
     NodeIndex set_node(Code code, NodeIndex prev, NodeIndex x_node) {
       NodeIndex next = x_node+code;
       base.at(prev).set_base(x_node);
-      chck.at(next) = code;
+      chck.at(next).set_chck(code);
       return next;
     }
 
@@ -195,7 +194,7 @@ namespace Doar {
     }
 
     void set_check_and_insert_tail(KeyStream in, Code code, NodeIndex idx) {
-      chck.at(idx) = code;
+      chck.at(idx).set_chck(code);
       insert_tail(in, idx);
     }
 
@@ -218,7 +217,7 @@ namespace Doar {
       NodeIndex end = std::min(beg+CODE_LIMIT, chck.size()-1);
       
       for(NodeIndex i=beg; i < end; i++)
-	if((i-beg) == chck[i])
+	if(chck[i].verify(i-beg))
 	  result.push_back(i-beg);
     }
     
@@ -234,10 +233,10 @@ namespace Doar {
 	NodeIndex old_node = old_base + *itr;
 	NodeIndex new_node = new_base + *itr;
 	
-	base.at(new_node).data = base.at(old_node).data;
-	chck.at(new_node)      = chck.at(old_node);
+	base.at(new_node).data = base.at(old_node).data; // XXX:
+	chck.at(new_node).set_chck(chck.at(old_node));
 	base[old_node] = Node::INVALID; 
-	chck[old_node] = VACANT_CODE;
+	chck[old_node].set_chck(VACANT_CODE);
 	
 	alloca.free(old_node);
       }
