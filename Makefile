@@ -6,13 +6,13 @@ HEADERS=${DOAR}/key_stream.h ${DOAR}/node.h ${DOAR}/searcher.h ${DOAR}/types.h $
 all: bin/doar bin/mkdoar bin/doar_test bin/mkddar
 
 bin/doar: ${CMD}/doar.cc ${HEADERS}
-	g++ ${OPT} -o${@} ${CMD}/doar.cc
+	g++ ${OPT} -o ${@} ${CMD}/doar.cc
 
 bin/doar_test: ${CMD}/doar_test.cc ${HEADERS}
-	g++ ${OPT} -o${@} ${CMD}/doar_test.cc
+	g++ ${OPT} -o ${@} ${CMD}/doar_test.cc
 
 bin/mkdoar: ${CMD}/mkdoar.cc ${HEADERS}
-	g++ ${OPT} -o${@} ${CMD}/mkdoar.cc
+	g++ ${OPT} -o ${@} ${CMD}/mkdoar.cc
 
 bin/mkddar: ${CMD}/mkddar.cc ${HEADERS}
-	g++ ${OPT} -o${@} ${CMD}/mkddar.cc
+	g++ ${OPT} -o ${@} ${CMD}/mkddar.cc
