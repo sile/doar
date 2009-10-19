@@ -8,20 +8,27 @@ namespace Doar {
     typedef std::vector<T> orig;
 
   public:
-    Vector() : orig() {}
-    Vector(typename orig::size_type n) : orig(n) {}
+    typedef typename orig::size_type size_type;
 
-    T& at(typename orig::size_type idx) {
+  public:
+    Vector() : orig() {}
+    Vector(size_type n) : orig(n) {}
+
+    T& at(size_type idx) {
       for(; idx+PADDING >= orig::size(); orig::resize(orig::size()*2));
       return orig::operator[](idx);
     }
 
+    void shift(size_type from, size_type to) {
+      T tmp = at(from); // NOTE: avoid reference to old data_ ...
+      at(to) = tmp;
+      operator[](from) = T();
+    }
+
 #if defined(WIN32) || defined(WIN64)
     // XXX: for dev
-    T* data() const {
-      if(orig::empty())
-	return NULL;
-      return &orig::operator[0];
+    const T* data() const {
+      return orig::empty() ? NULL : &orig::operator[](0);
     }
 #endif
   };

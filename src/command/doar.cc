@@ -25,6 +25,9 @@ void print_common_prefix(const char* key, unsigned len, unsigned id) {
   std::cout << " #"<< id <<": "<<std::string(key,key+len)<<" ["<<len<<"]"<< std::endl;	  
 }
 
+// NOTE: visual studio 2005では、型を明示的に指定する必要があった
+typedef void (*PRINT_FN_TYPE)(const char*,unsigned,unsigned);
+
 
 int main(int argc, char** argv) {
   if(argc != 2) {
@@ -51,7 +54,7 @@ int main(int argc, char** argv) {
     case '+':
       // common prefix search
       {
-	srch.common_prefix_search(word.c_str(), print_common_prefix);
+	srch.common_prefix_search<PRINT_FN_TYPE>(word.c_str(), print_common_prefix);
       }
       break;
     case '~':

@@ -15,9 +15,9 @@ namespace Doar {
   
   class Node;
   class Chck;
-  typedef uint32 NodeIndex;
-  typedef uint32 TailIndex;
-  typedef uint32 Code;
+  typedef uint32         NodeIndex;
+  typedef uint32         TailIndex;
+  typedef unsigned char  Code;
   
   typedef Vector<Code>      CodeList;
   typedef Vector<uint32>  TindList;

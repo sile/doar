@@ -67,7 +67,7 @@ namespace Doar {
       Code min_cd = codes.front();
       
       for(; cur->idx <= min_cd; prev=cur, cur=cur->next) assert(cur);
-      for(uint32 cnt=0; cur; prev=cur,cur=cur->next,cnt++) {
+      for(uint32 cnt=0; cur->next; prev=cur,cur=cur->next,cnt++) {
 	NodeIndex x = cur->idx - min_cd;
 	if(!bset[x] && can_allocate(cur, codes, x)) {
 	  if(cnt>TRY_ALLOC_THRESHOLD)
@@ -78,12 +78,12 @@ namespace Doar {
 	  return x;
 	}
       }
-      last_idx = prev->append(last_idx+1, PER_LINK_SIZE);
+      last_idx = cur->append(last_idx+1, PER_LINK_SIZE);
       
       if(last_idx >= bset.size())
 	bset.resize(bset.size()*2);
       
-      return x_check(codes, prev);
+      return x_check(codes, cur);
     }
     
   private:

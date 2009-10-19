@@ -233,11 +233,8 @@ namespace Doar {
 	NodeIndex old_node = old_base + *itr;
 	NodeIndex new_node = new_base + *itr;
 	
-	base.at(new_node).data = base.at(old_node).data; // XXX:
-	chck.at(new_node).set_chck(chck.at(old_node));
-	base[old_node] = Node::INVALID; 
-	chck[old_node].set_chck(VACANT_CODE);
-	
+	base.shift(old_node, new_node);
+	chck.shift(old_node, new_node);
 	alloca.free(old_node);
       }
     }

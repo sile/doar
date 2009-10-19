@@ -7,6 +7,7 @@ namespace Doar{
   class Node {
   public:
     Node() : data(0xFFFFFFFF) {}
+
     uint32   id()  const { return tail_index(); }
     operator bool() const { return data!=0xFFFFFFFF; }
     bool is_leaf() const { return data&0x80000000; } 
@@ -18,8 +19,6 @@ namespace Doar{
     friend class DoubleArray;
     friend class DynamicAllocator;
 
-    explicit Node(uint32 d) : data(d) {}
-    
     NodeIndex base() const  { return data; }
     NodeIndex next_index(Code cd) const  { return base()+cd; }
     TailIndex tail_index() const  { return data&0x7FFFFFFF; }
@@ -42,7 +41,6 @@ namespace Doar{
     bool verify(Code cd) const { return cd==data; }   // XXX:
 
     void set_chck(Code cd) { data=cd; }
-    void set_chck(Chck ch) { data=ch.data; }
   private:
     unsigned char data;
   };

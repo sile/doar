@@ -22,14 +22,14 @@ struct mmap_t {
     DWORD flProtect  = write_mode ? PAGE_READWRITE : PAGE_READONLY;
     DWORD mapAccess  = write_mode ? FILE_MAP_WRITE : FILE_MAP_READ;
     
-    HANDLE hFile = CreateFile(filepath, fileAccess, 0, 0, OPEN_EXISTING, 0, 0);
+    HANDLE hFile = CreateFile(path, fileAccess, 0, 0, OPEN_EXISTING, 0, 0);
     if(hFile == INVALID_HANDLE_VALUE)
       return;
     size = GetFileSize(hFile, NULL);
     
     HANDLE hMap = CreateFileMapping(hFile, 0, flProtect, 0, 0, NULL);
     if(hMap != NULL)
-      ptr = MapViewOfFile(h, mapAccess, 0, 0, 0);
+      ptr = MapViewOfFile(hMap, mapAccess, 0, 0, 0);
     
     CloseHandle(hMap);
     CloseHandle(hFile);
