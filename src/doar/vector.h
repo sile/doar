@@ -24,12 +24,13 @@ namespace Doar {
       at(to) = tmp;
       operator[](from) = T();
     }
-
-#if defined(WIN32) || defined(WIN64) || !defined(_GLIBCXX_RESOLVE_LIB_DEFECTS)
+    
+    // TODO: C++0x
+    #ifndef _GLIBCXX_RESOLVE_LIB_DEFECTS
     const T* data() const {
-      return orig::empty() ? NULL : &orig::operator[](0);
+      return orig::empty() ? NULL : &orig::front();
     }
-#endif
+    #endif
   };
 }
 

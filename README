@@ -13,9 +13,20 @@ Doarは、DoubleArrayの構築・検索を行うためのC++ライブラリで�
  ・Rubyバインディング  ※ 現在は、データ読込・検索のみ
 
 
-[環境]
-・現在(2009/10/18)は、unix,32bit(sizeof(int)==4)、環境を前提としています
+[移植性に関する注意]
+・以下の三点
+　・sizeof(int)!=32bit
+　・std::vector.data()
+　・mmap_t	
 
+[コンパイル・動作確認]
+・WindowsXP
+　・VisualC++ 2005/2008
+・unix系(g++ 4.x.x)  ※ 以下は、SourceForge.jpのコンパイラフォーム(http://sourceforge.jp/docs/コンパイルファームFAQ)での検証環境
+　・x86	Linux Kernel 2.6（Debian GNU/Linux 4.0 etch)
+　・x86	NetBSD 4.0
+　・PowerPC G5	MacOS X 10.5
+　・AMD64	Linux Kernel 2.6（Debian GNU/Linux 4.0 etch)
 
 [使い方]
 ・makeでサンプルコマンドをコンパイル
