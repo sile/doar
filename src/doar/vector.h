@@ -25,8 +25,7 @@ namespace Doar {
       operator[](from) = T();
     }
 
-#if defined(WIN32) || defined(WIN64) || defined(VECTOR_HAS_NO_MEMBER_DATA)
-    // XXX: for dev
+#if defined(WIN32) || defined(WIN64) || !defined(_GLIBCXX_RESOLVE_LIB_DEFECTS)
     const T* data() const {
       return orig::empty() ? NULL : &orig::operator[](0);
     }
