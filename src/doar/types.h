@@ -3,9 +3,8 @@
 
 #include <string>
 
-// TODO: include common header?
 #include <algorithm>
-#include "../util/mmap_t.h"
+#include "mmap_t.h"
 #include "vector.h"
 
 namespace Doar {

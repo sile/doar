@@ -1,11 +1,9 @@
 #ifndef DOAR_SEARCHER_H
 #define DOAR_SEARCHER_H
 
-#include <cassert>
 #include "types.h"
 #include "key_stream.h"
 #include "node.h"
-#include "../util/mmap_t.h"
 
 namespace Doar {
   // TODO: comment for assumption

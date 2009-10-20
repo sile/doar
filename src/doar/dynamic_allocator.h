@@ -4,7 +4,7 @@
 #include "types.h"
 #include "node.h"
 #include <vector>
-#include <assert.h>
+#include <cassert>
 
 namespace Doar {
   using std::max; // NOTE: for Windows macro

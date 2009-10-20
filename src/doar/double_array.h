@@ -5,7 +5,6 @@
 #include "key_stream.h"
 #include "node.h"
 #include "dynamic_allocator.h"
-#include "../util/mmap_t.h"
 #include "builder.h"
 #include "searcher.h"
 #include "shrink_tail.h"
