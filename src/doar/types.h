@@ -16,11 +16,11 @@ namespace Doar {
   class Node;
   class Chck;
   typedef uint32         NodeIndex;
-  typedef uint32         TailIndex;
+  typedef uint32         TailIndex; // TODO: 用語説明。二重性 base[i] and tind[i]
   typedef uint32         Code;
   
   typedef Vector<Code>      CodeList;
-  typedef Vector<uint32>  TindList;
+  typedef Vector<uint32>  TindList;    // TailIndex list?
   typedef std::string            Tail;
 
   struct header {

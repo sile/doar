@@ -14,10 +14,11 @@ Doarは、DoubleArrayの構築・検索を行うためのC++ライブラリで�
 
 
 [移植性に関する注意]
-・以下の三点
+・以下の四点
 　・sizeof(int)!=32bit
 　・std::vector.data()
 　・mmap_t	
+　・バイトエンディアン
 
 [コンパイル・動作確認]
 ・WindowsXP

@@ -7,6 +7,8 @@
 #include <assert.h>
 
 namespace Doar {
+  using std::max; // NOTE: for Windows macro
+
   class DynamicAllocator {
     struct Link {
       Link(uint32 p, uint32 n) : prev(p), next(n) {}
@@ -100,7 +102,7 @@ namespace Doar {
 	  if(cnt > TRY_ALLOC_THRESHOLD)
 	    beg_idx=lnk[beg_idx].next;
 	  
-	  for(uint32 i=0; i<codes.size(); i++)
+	  for(std::size_t i=0; i<codes.size(); i++)
 	    alloc(x+codes[i]);
 	
 	  return x;
@@ -126,18 +128,18 @@ namespace Doar {
     
   private:
     bool can_allocate(const CodeList& codes, NodeIndex x) const {
-      for(uint32 i=1; i < codes.size(); i++)
+      for(std::size_t i=1; i < codes.size(); i++)
 	if(x+codes[i] < lnk.size() && lnk[x+codes[i]].next==0)
 	  return false;
       return true;
     }
 
     void resize_link(NodeIndex hint=0) {
-      lnk.back().next=lnk.size();
-      NodeIndex end = std::max(hint,static_cast<NodeIndex>(lnk.size()*2));
+      lnk.back().next=static_cast<uint32>(lnk.size());
+      NodeIndex end = max(hint,static_cast<NodeIndex>(lnk.size()*2));
       bset.resize(end);
 
-      for(NodeIndex i=lnk.size(); i < end; i++) 
+      for(NodeIndex i=static_cast<NodeIndex>(lnk.size()); i < end; i++) 
 	lnk.push_back(Link(i-1,i+1));
       lnk.back().next=0; // 末尾 -> 先頭
     }

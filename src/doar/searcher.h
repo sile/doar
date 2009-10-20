@@ -119,14 +119,14 @@ namespace Doar {
     bool key_including(const KeyStream in, const Node n, uint32& key_offset) const {
       const char* ptr=tail+tind[n.tail_index()];
       std::size_t len = strlen(ptr);
-      key_offset += len + 1;
+      key_offset += static_cast<uint32>(len) + 1;
       return strncmp(in.rest(), ptr, len)==0;
     }
    
   protected:
     const Node*   base; // BASE array
     const Chck*   chck; // CHECK array
-    const uint32* tind; // TAIL index array
+    const uint32* tind; // TAIL index array  -> TailIndex* TODO:
     const char*   tail; // TAIL array
   };
 
@@ -144,8 +144,8 @@ namespace Doar {
       tail = reinterpret_cast<const char*>(chck + h.node_size);
     }
 
-    operator bool() const { return (bool)mm; }
-    uint32   size() const { return h.tind_size; }
+    operator    bool() const { return (bool)mm; }
+    std::size_t size() const { return h.tind_size; }
 
   private:
     const mmap_t mm;

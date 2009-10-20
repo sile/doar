@@ -11,6 +11,8 @@
 #include "shrink_tail.h"
 
 namespace Doar {
+  using std::min; // NOTE: for Windows macro
+    
   class DoubleArray {
     typedef DynamicAllocator Allocator;
 
@@ -77,17 +79,6 @@ namespace Doar {
 
     void clear() { init(); }
 
-    bool save_and_clear(const char* path) {
-      ShrinkTail(tail,tind).shrink();
-      alloca.clear();
-      
-      Builder bld;
-      bld.build(base,chck,tind,tail);
-      init();
-      
-      return bld.save(path,false);      
-    }
-
     bool load(const char* path) {
       init();
 
@@ -111,7 +102,7 @@ namespace Doar {
 
     /*********/
     /* other */
-    uint32 size() const { return tind.size(); }
+    std::size_t size() const { return tind.size(); }
 
   private:
     // TODO: 
@@ -169,7 +160,7 @@ namespace Doar {
 	idx=set_node(c, idx, alloca.x_check_one(c));
       
       rlt.last_node = idx;
-      rlt.tail_idx = tin.eos() ? 0 : tin.rest()-tail.data();
+      rlt.tail_idx = tin.eos() ? 0 : static_cast<TailIndex>(tin.rest()-tail.data());
       rlt.codes[0] = c;
       rlt.codes[1] = tc;
     }
@@ -182,13 +173,13 @@ namespace Doar {
     }
 
     void insert_tail(KeyStream in, NodeIndex idx) {
-      base.at(idx).set_tail_index(tind.size());
+      base.at(idx).set_tail_index(static_cast<TailIndex>(tind.size()));
       if(in.eos()) {
-	tind.push_back(tail.size()-1); // 便宜的に、一つ前の'\0'を指すようにする
+	tind.push_back(0); // NOTE: tail[0]=='\0'
 	return;
       }
       
-      tind.push_back(tail.size());
+      tind.push_back(static_cast<TailIndex>(tail.size()));
       tail += in.rest();
       tail += '\0';
     }
@@ -214,7 +205,7 @@ namespace Doar {
 
     void correspond_codes(Node node, CodeList& result) const {
       NodeIndex beg = node.base(); 
-      NodeIndex end = std::min(beg+CODE_LIMIT, static_cast<NodeIndex>(chck.size()-1));
+      NodeIndex end = min(beg+CODE_LIMIT, static_cast<NodeIndex>(chck.size()-1));
       
       for(NodeIndex i=beg; i < end; i++)
 	if(chck[i].verify(i-beg))

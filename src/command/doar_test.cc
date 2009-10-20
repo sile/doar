@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
   }
 
   const int TIMES=argc<=3 ? 1 : atoi(argv[3]);
-  const int interval = TIMES*rl.size()/10;
+  const int interval = static_cast<int>(TIMES*rl.size()/10);
 
   int cnt=0, err=0;
   const char* line;

@@ -43,7 +43,7 @@ public:
     return lines[index++];
   }
 
-  unsigned size() const { return lines.size(); }
+  std::size_t size() const { return lines.size(); }
 
 private:
   void init(char* cur, const char* end) {

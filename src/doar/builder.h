@@ -66,9 +66,9 @@ namespace Doar {
 	ShrinkTail(tail,tind).shrink();
       
       // get size
-      header h={0,tind.size(),tail.size()};
+      header h={0,static_cast<uint32>(tind.size()),static_cast<uint32>(tail.size())};
       
-      for(int32 i=chck.size()-1; i>=0; i--)
+      for(int32 i=static_cast<int32>(chck.size()-1); i>=0; i--)
 	if(chck[i].vacant()==false) {
 	  h.node_size=i+1;
 	  break;
@@ -93,21 +93,21 @@ namespace Doar {
       return true;
     }
 
-    uint32 size() const { return tind.size(); }
+    std::size_t size() const { return tind.size(); }
     
   private:
-    void build_impl(KeyStreamList& keys, Allocator& alloca, uint32 beg, uint32 end, NodeIndex root_idx) {
+    void build_impl(KeyStreamList& keys, Allocator& alloca, std::size_t beg, std::size_t end, NodeIndex root_idx) {
       if(end-beg==1) {
 	insert_tail(keys[beg],root_idx);
 	return;
       }
 
-      std::vector<uint32> end_list;
+      std::vector<std::size_t> end_list;
       CodeList cs;
       Code prev=VACANT_CODE;
 
       // 
-      for(uint32 i=beg; i < end; i++) {
+      for(std::size_t i=beg; i < end; i++) {
 	Code cur = keys[i].read();
 	if(prev != cur) {
 	  cs.push_back(cur);
@@ -120,7 +120,7 @@ namespace Doar {
       
       //
       NodeIndex x = alloca.x_check(cs);
-      for(uint32 i=0; i<cs.size(); i++) 
+      for(std::size_t i=0; i<cs.size(); i++) 
 	build_impl(keys, alloca,end_list[i],end_list[i+1], set_node(cs[i],root_idx,x));
     }
 
@@ -158,9 +158,9 @@ namespace Doar {
     }
 
     void insert_tail(KeyStream in, NodeIndex node) {
-      base.at(node).set_tail_index(tind.size());
+      base.at(node).set_tail_index(static_cast<TailIndex>(tind.size()));
       if(in.eos()) {
-	tind.push_back(tail.size()-1); // 便宜的に、一つ前の'\0'を指すようにする
+	tind.push_back(0); // NOTE: tail[0]=='\0'
 	return;
       }
 

@@ -27,7 +27,7 @@ namespace Doar {
       for(uint32 i=0; i < terminal_indices.size(); i++) {
 	const ShrinkRecord& p = terminal_indices[i];
 	
-	TailIndex tail_idx = new_tail.size();
+	TailIndex tail_idx = static_cast<TailIndex>(new_tail.size());
 	if(i>0 && can_share(terminal_indices[i-1], p)) {
 	  tail_idx -= p.tail_len+1; // +1は、末尾の'\0'分
 	} else {
@@ -42,10 +42,10 @@ namespace Doar {
   private:
     struct ShrinkRecord {
       ShrinkRecord(uint32 i,const char* t) 
-        : tind_idx(i),tail(t),tail_len(strlen(t)) {}
+        : tind_idx(i),tail(t),tail_len(static_cast<int>(strlen(t))) {}
       uint32      tind_idx;
       const char* tail;
-      int         tail_len;
+      int tail_len;
     };
 
     // lftがrgtを包含しているか?

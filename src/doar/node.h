@@ -10,7 +10,7 @@ namespace Doar{
 
     uint32   id()  const { return tail_index(); }
     operator bool() const { return data!=0xFFFFFFFF; }
-    bool is_leaf() const { return data&0x80000000; } 
+    bool is_leaf() const { return (data&0x80000000) != 0; } 
     static const Node INVALID;
 
   private:
