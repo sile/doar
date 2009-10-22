@@ -3,48 +3,61 @@
 
 #include "types.h"
 
-namespace Doar{
-  class Node {
+namespace Doar {
+  /********/
+  /* Base */
+  class Base {
   public:
-    Node() : data(0xFFFFFFFF) {}
-
-    uint32   id()  const { return tail_index(); }
-    operator bool() const { return data!=0xFFFFFFFF; }
-    bool is_leaf() const { return (data&0x80000000) != 0; } 
-    static const Node INVALID;
-
-  private:
-    friend class Builder;
-    friend class SearcherBase;
-    friend class DoubleArray;
-    friend class DynamicAllocator;
-
+    Base() : data(0xFFFFFFFF) {}
+    Base (const Base& src) : data(src.data){}
+    
     NodeIndex base() const  { return data; }
+    TailIndex id()   const  { return data&0x7FFFFFFF; } 
     NodeIndex next_index(Code cd) const  { return base()+cd; }
-    TailIndex tail_index() const  { return data&0x7FFFFFFF; }
+    bool is_leaf() const { return (data&0x80000000) != 0; }  
     
     void set_base(NodeIndex idx) { data=idx; }
-    void set_tail_index(TailIndex idx) { data= idx | 0x80000000; }
-    
+    void set_id(uint32 id)       { data= id | 0x80000000; }
+
+  protected:
     uint32 data;
+  };
+  typedef Vector<Base,CODE_LIMIT> BaseList; 
+
+  /********/
+  /* Node */
+  // NOTE: Actually, Node is the same to Base. 
+  //       But the former provide convenient interface for user.
+  class Node : protected Base {
+  public:
+    Node() : Base() {}
+    
+    uint32   id()   const { return Base::id(); }
+    operator bool() const { return data!=0xFFFFFFFF; }
+    bool is_leaf()  const { return Base::is_leaf(); }
+    
+  private:
+    friend class SearcherBase;
+    Node(Base b) : Base(b) {}
+    
+  public:
+    static const Node INVALID;
   };
   const Node Node::INVALID = Node();
   
-  typedef Vector<Node,CODE_LIMIT> BaseList; // XXX:
-
-  
+  /********/
+  /* Chck */
   class Chck {
-  public:
+  public:    
     Chck() : data(VACANT_CODE) {}
     
-    bool vacant() const { return data==VACANT_CODE; }
-    bool verify(Code cd) const { return cd==data; }   // XXX:
+    bool in_use() const { return data!=VACANT_CODE; }
+    bool trans_by(Code cd) const { return cd==data; }
 
     void set_chck(Code cd) { data=cd; }
   private:
     unsigned char data;
   };
-
   typedef Vector<Chck,CODE_LIMIT> ChckList;
 }
 #endif

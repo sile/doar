@@ -42,14 +42,14 @@ namespace Doar {
       beg_idx=CODE_LIMIT;
     }
     
-    void restore_condition(const Node* base, const Chck* chck, uint32 node_size) {
+    void restore_condition(const Base* base, const Chck* chck, uint32 node_size) {
       init(static_cast<uint32>(node_size*1.5));
 
       for(NodeIndex i=0; i < node_size; i++) {
 	if(!base[i].is_leaf())  // XXX: INVALID is leaf という条件に依存している。 TODO: ドキュメント化
 	  bset[base[i].base()].flip();
 	
-	if(chck[i].vacant()==false)
+	if(chck[i].in_use())
 	  alloc(i);
       }
     }

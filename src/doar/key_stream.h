@@ -5,22 +5,23 @@
 #include <vector>
 
 namespace Doar {
-  // MEMO: keyは'\0'終端文字列で、値が0xFFの文字を含むことはできない
   class KeyStream {
   public:
-    KeyStream(){}
+    // NOTE: key is NULL terminated string.  It can't contain '0xFF' character.
     KeyStream(const char* key) : cur(key) {}
+    KeyStream(){}
     
     Code read() { return static_cast<unsigned char>(*cur++); }
     const char* rest() const { return cur; }
     bool eos() const { return cur[-1]=='\0'; }
-
+    
   private:
     const char* cur;
   };
 
   class KeyStreamList {
   public:
+    // construct from file
     KeyStreamList(const char* filepath) 
       : buf(NULL),valid(false) {
       FILE* f;
@@ -28,7 +29,7 @@ namespace Doar {
 	return;
     
       fseek(f,0,SEEK_END);
-      long file_size = ftell(f); // NOTE# file size limit: 2^(sizeof(long)-1)
+      long file_size = ftell(f); // NOTE: File size limit is 2^(sizeof(long)-1)
       fseek(f,0,SEEK_SET);
       
       if(file_size != -1){
@@ -41,12 +42,9 @@ namespace Doar {
     
       fclose(f);
     }
+    // construct from string array
     KeyStreamList(const char** strs, uint32 str_count) 
-      : buf(NULL),valid(true) {
-      words.resize(str_count);
-      for(uint32 i=0; i < str_count; i++)
-	words[i] = KeyStream(strs[i]);
-    }
+      : words(strs,strs+str_count), buf(NULL), valid(true) {}
     ~KeyStreamList() { delete [] buf; }
 
     std::size_t size() const { return words.size(); }
@@ -66,9 +64,8 @@ namespace Doar {
     }
     
   private:
-    char* buf;
     std::vector<KeyStream> words;
-    
+    char* buf;
     bool valid;
   };
 }

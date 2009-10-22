@@ -4,39 +4,40 @@
 #include "types.h"
 #include "key_stream.h"
 #include "node.h"
+#include "mmap_t.h"
 
 namespace Doar {
   // TODO: comment for assumption
   class SearcherBase {
   public:
-    SearcherBase(const Node* base, const Chck* chck, const uint32* tind, const char* tail) 
+    SearcherBase(const Base* base, const Chck* chck, const uint32* tind, const char* tail) 
       : base(base),chck(chck),tind(tind),tail(tail) {}
 
-   Node search(const char* key) const {
+    Node search(const char* key) const {
       Node node=root_node();
       KeyStream in(key); 
       for(Code cd=in.read();; cd=in.read()) {
 	const NodeIndex idx = node.next_index(cd);
 	node = base[idx];
 	
-	if(chck[idx].verify(cd))
+	if(chck[idx].trans_by(cd))
 	  if(!node.is_leaf())                      continue;
 	  else if(in.eos() || key_exists(in,node)) return node;
 	return Node::INVALID;
-      } 
+      }
     }
     
     Node search(const char* key, Node& root_node) const {
       if(root_node.is_leaf())
 	return Node::INVALID;
       
-      Node node = root_node;
+      Base node = root_node;
       KeyStream in(key); 
       for(Code cd=in.read();; cd=in.read(), root_node=node) {
 	const NodeIndex idx = node.next_index(cd);
 	node = base[idx];
 	
-	if(chck[idx].verify(cd))
+	if(chck[idx].trans_by(cd))
 	  if(!node.is_leaf())           continue;
 	  else if(in.eos())             return node;
 	  else if(key_exists(in, node)) return root_node=node;
@@ -52,7 +53,7 @@ namespace Doar {
       
       for(Code cd=in.read();; cd=in.read(), offset++) {
 	const NodeIndex terminal_idx = node.next_index(TERMINAL_CODE);
-	if(chck[terminal_idx].verify(TERMINAL_CODE)) {
+	if(chck[terminal_idx].trans_by(TERMINAL_CODE)) {
 	  fn(key,offset,base[terminal_idx].id());
 	  if(cd==TERMINAL_CODE)
 	    return;
@@ -60,7 +61,7 @@ namespace Doar {
 	
 	const NodeIndex idx = node.next_index(cd);
 	node = base[idx];
-	if(chck[idx].verify(cd))
+	if(chck[idx].trans_by(cd))
 	  if(!node.is_leaf())                    continue;
 	    else if(key_including(in,node,offset)) fn(key,offset,node.id());
 	return;
@@ -78,7 +79,7 @@ namespace Doar {
       
       for(Code cd=in.read();; cd=in.read(), offset++) {
 	const NodeIndex terminal_idx = node.next_index(TERMINAL_CODE);
-	if(chck[terminal_idx].verify(TERMINAL_CODE)){
+	if(chck[terminal_idx].trans_by(TERMINAL_CODE)){
 	  fn(key,offset,base[terminal_idx].id(),node);
 	  if(cd==TERMINAL_CODE)
 	    return;
@@ -86,7 +87,7 @@ namespace Doar {
 	
 	const NodeIndex idx = node.next_index(cd);
 	node = base[idx];
-	if(chck[idx].verify(cd))
+	if(chck[idx].trans_by(cd))
 	  if(!node.is_leaf())                    continue;
 	  else if(key_including(in,node,offset)) fn(key,offset,node.id(),node);
 	return;
@@ -99,9 +100,9 @@ namespace Doar {
 	return;
       
       for(Code cd=0; cd < CODE_LIMIT; cd++)
-	if(chck[parent.next_index(cd)].verify(cd)) {
+	if(chck[parent.next_index(cd)].trans_by(cd)) {
 	  Node node = base[parent.next_index(cd)];
-	  fn(static_cast<char>(cd), node, node.is_leaf() ? tail+tind[node.tail_index()] : NULL);
+	  fn(static_cast<char>(cd), node, node.is_leaf() ? tail+tind[node.id()] : NULL);
 	}
     }
 
@@ -110,19 +111,19 @@ namespace Doar {
   protected:
     SearcherBase() : base(NULL), chck(NULL), tind(NULL), tail(NULL) {}
     
-    bool key_exists(const KeyStream in, const Node n) const {
-      return strcmp(in.rest(), tail+tind[n.tail_index()])==0;
+    bool key_exists(const KeyStream in, const Base n) const {
+      return strcmp(in.rest(), tail+tind[n.id()])==0;
     }
 
-    bool key_including(const KeyStream in, const Node n, uint32& key_offset) const {
-      const char* ptr=tail+tind[n.tail_index()];
+    bool key_including(const KeyStream in, const Base n, uint32& key_offset) const {
+      const char* ptr=tail+tind[n.id()];
       std::size_t len = strlen(ptr);
       key_offset += static_cast<uint32>(len) + 1;
       return strncmp(in.rest(), ptr, len)==0;
     }
    
   protected:
-    const Node*   base; // BASE array
+    const Base*   base; // BASE array
     const Chck*   chck; // CHECK array
     const uint32* tind; // TAIL index array  -> TailIndex* TODO:
     const char*   tail; // TAIL array
@@ -135,9 +136,9 @@ namespace Doar {
 	return;
 
       // TODO: format check
-      memcpy(&h,mm.ptr,sizeof(header));
-      tind = reinterpret_cast<const uint32*>(static_cast<char*>(mm.ptr)+sizeof(header));
-      base = reinterpret_cast<const Node*>(tind+h.tind_size);
+      memcpy(&h,mm.ptr,sizeof(Header));
+      tind = reinterpret_cast<const uint32*>(static_cast<char*>(mm.ptr)+sizeof(Header));
+      base = reinterpret_cast<const Base*>(tind+h.tind_size);
       chck = reinterpret_cast<const Chck*>(base+h.node_size);
       tail = reinterpret_cast<const char*>(chck + h.node_size);
     }
@@ -147,7 +148,7 @@ namespace Doar {
 
   private:
     const mmap_t mm;
-    header h;
+    Header h;
   };
 }
 #endif

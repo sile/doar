@@ -26,13 +26,13 @@ namespace Doar {
 
       for(Code cd=in.read();; cd=in.read()) {
 	const NodeIndex next_idx = base[idx].next_index(cd);
-	const Node next = base.at(next_idx);
+	const Base next = base.at(next_idx);
 	
 	if(alloca.is_free(next_idx)) {
 	  alloca.alloc(next_idx);
 	  set_check_and_insert_tail(in,cd,next_idx);
 	  return true;
-	} else if(chck[next_idx].verify(cd)) {
+	} else if(chck[next_idx].trans_by(cd)) {
 	  if(next.is_leaf()) {
 	    if(in.eos() || key_exists(in, next))
 	      return false;
@@ -86,12 +86,12 @@ namespace Doar {
 	return false;
 
       // TODO: format check      
-      header h;
-      memcpy(&h,mm.ptr,sizeof(header));
+      Header h;
+      memcpy(&h,mm.ptr,sizeof(Header));
 
-      void* beg=static_cast<char*>(mm.ptr)+sizeof(header);
+      void* beg=static_cast<char*>(mm.ptr)+sizeof(Header);
       beg = assign(tind, static_cast<uint32 *>(beg), h.tind_size); 
-      beg = assign(base, static_cast<Node*>(beg), h.node_size);
+      beg = assign(base, static_cast<Base*>(beg), h.node_size);
       beg = assign(chck, static_cast<Chck*>(beg), h.node_size);
       beg = assign(tail, static_cast<char*>(beg), h.tail_size);
 
@@ -123,8 +123,8 @@ namespace Doar {
       return SearcherBase(base.data(),chck.data(),tind.data(),tail.data());
     }
 
-    bool key_exists(const KeyStream in, const Node n) const {
-      return strcmp(in.rest(), tail.data()+tind[n.tail_index()])==0;
+    bool key_exists(const KeyStream in, const Base n) const {
+      return strcmp(in.rest(), tail.data()+tind[n.id()])==0;
     }
 
     // struct: Tail_Collision_Case RESULT
@@ -138,20 +138,20 @@ namespace Doar {
     
     void tail_collision_case(KeyStream in, NodeIndex idx) {
       TCC_RESULT rlt;
-      NodeIndex old_tail_idx = base[idx].tail_index();
+      uint32     old_id = base[idx].id();
 
       set_common_node(in,idx,rlt);
 
       NodeIndex x_node = alloca.x_check_two(rlt.codes[0],rlt.codes[1]);
       idx = set_node(rlt.codes[1], rlt.last_node, x_node);
-      base[idx].set_tail_index(old_tail_idx);
-      tind[old_tail_idx] = rlt.tail_idx;
+      base[idx].set_id(old_id);
+      tind[old_id] = rlt.tail_idx;
       
       insert_tail(in, set_node(rlt.codes[0], rlt.last_node, x_node));
     }
     
-    void set_common_node(KeyStream& in, NodeIndex idx,TCC_RESULT& rlt) {
-      KeyStream tin(tail.data()+tind[base[idx].tail_index()]);
+    void set_common_node(KeyStream& in, NodeIndex idx, TCC_RESULT& rlt) {
+      KeyStream tin(tail.data()+tind[base[idx].id()]);
       
       Code c  = in.read();
       Code tc = tin.read();
@@ -172,7 +172,7 @@ namespace Doar {
     }
 
     void insert_tail(KeyStream in, NodeIndex idx) {
-      base.at(idx).set_tail_index(static_cast<TailIndex>(tind.size()));
+      base.at(idx).set_id(static_cast<TailIndex>(tind.size()));
       if(in.eos()) {
 	tind.push_back(0); // NOTE: tail[0]=='\0'
 	return;
@@ -202,12 +202,12 @@ namespace Doar {
       set_check_and_insert_tail(in, code, base[idx].next_index(code));
     }
 
-    void correspond_codes(Node node, CodeList& result) const {
+    void correspond_codes(Base node, CodeList& result) const {
       NodeIndex beg = node.base(); 
       NodeIndex end = min(beg+CODE_LIMIT, static_cast<NodeIndex>(chck.size()-1));
       
       for(NodeIndex i=beg; i < end; i++)
-	if(chck[i].verify(i-beg))
+	if(chck[i].trans_by(i-beg))
 	  result.push_back(i-beg);
     }
     

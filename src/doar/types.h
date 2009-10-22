@@ -2,35 +2,38 @@
 #define DOAR_TYPES_H
 
 #include <string>
-
-#include <algorithm>
-#include "mmap_t.h"
 #include "vector.h"
 
 namespace Doar {
-  // NOTE: Please redef ...
-  typedef int       int32;
+  // NOTE: Portability note
+  //   Please redefine 32bit(4byte) unsigned integer type
+  //   if sizeof(unsigned) != 8 on your environment.
   typedef unsigned uint32;
-  
-  class Node;
-  class Chck;
-  typedef uint32         NodeIndex;
-  typedef uint32         TailIndex; // TODO: 用語説明。二重性 base[i] and tind[i]
-  typedef uint32         Code;
+
+  //class Node;   
+  //class Base;
+  //class Chck;
+  //class BaseList;
+  //class ChckList;
+
+  typedef uint32 NodeIndex;
+  typedef uint32 ElemID;
+  typedef uint32 TailIndex;
+  typedef uint32 Code;
   
   typedef Vector<Code>      CodeList;
-  typedef Vector<uint32>  TindList;    // TailIndex list?
-  typedef std::string            Tail;
-
-  struct header {
-    uint32 node_size; // BASE and CHECK array size
-    uint32 tind_size; // TAIL index array size  # TIND[BASE[i]] -> TAIL index
-    uint32 tail_size; // TAIL array size
+  typedef Vector<TailIndex> TindList;  // Tail INDex List
+  typedef std::string       Tail;
+  
+  struct Header {
+    uint32 node_size;  // BASE and CHECK array size
+    uint32 tind_size; 
+    uint32 tail_size; 
   };
-
-  static const Code CODE_LIMIT    = 0xFF;
-  static const Code TERMINAL_CODE = 0x00;
-  static const Code VACANT_CODE   = CODE_LIMIT;
+  
+  const Code CODE_LIMIT    = 0xFF;
+  const Code TERMINAL_CODE = 0x00;
+  const Code VACANT_CODE   = 0xFF;
 }
 
 #endif

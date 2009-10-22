@@ -1,22 +1,12 @@
 #ifndef MMAP_T_H
 #define MMAP_T_H
 
-#ifdef WIN32
- #define WIN_OS
-#endif
-
-#ifdef WIN64
- #define WIN_OS
-#endif
-
-#ifdef WIN_OS // This OS may be Windows
-#undef WIN_OS
-
+#if defined(WIN32) || defined(WIN64)
 // for Windows
 #include <windows.h>
 
 struct mmap_t {
-  // NOTE: variable 'flags' is ignored on Windows
+  // NOTE: Variable 'flags' is ignored on Windows
   mmap_t(const char* path, bool write_mode=false, int flags=0) : ptr(NULL) {
     DWORD fileAccess = write_mode ? GENERIC_READ|GENERIC_WRITE : GENERIC_READ;
     DWORD flProtect  = write_mode ? PAGE_READWRITE : PAGE_READONLY;
@@ -35,19 +25,16 @@ struct mmap_t {
     CloseHandle(hFile);
   }
 
-  ~mmap_t() {
-    UnmapViewOfFile(ptr);
-  }
+  ~mmap_t() { UnmapViewOfFile(ptr); }
 
-  operator bool () const 
-  { return ptr!=NULL; }
+  operator bool () const { return ptr!=NULL; }
 
   size_t size;
   void *ptr;
 };
 
 #else
-// for Unix
+// for unix
 
 #include <sys/stat.h>
 #include <sys/mman.h>
@@ -71,16 +58,13 @@ struct mmap_t {
     close(f);  
   }
 
-  ~mmap_t() {
-    munmap(ptr, size);
-  }
-
-  operator bool () const 
-  { return ptr!=reinterpret_cast<void*>(-1); }
-
+  ~mmap_t() { munmap(ptr, size); }
+  
+  operator bool () const { return ptr!=reinterpret_cast<void*>(-1); }
+  
   size_t size;
   void *ptr;
 };
 
-#endif // #ifdef WINVER
-#endif // #ifndef MMAP_TH
+#endif // #if defined(WIN32) || defined(WIN64)
+#endif // #ifndef MMAP_T_H

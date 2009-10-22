@@ -6,7 +6,8 @@
 #include "static_allocator.h"
 #include "shrink_tail.h"
 #include "node.h"
-#include <cstdio>
+#include "../util/gettime.h"
+#include <stdexcept>
 
 namespace Doar {
   class Builder {
@@ -18,8 +19,11 @@ namespace Doar {
       KeyStreamList keys(filepath);
       if(!keys)
 	return false;
-      // TODO: sort check
-      //
+
+      // sort and uniquness check
+      for(std::size_t i=0; i < keys.size()-1; i++) 
+	if(strcmp(keys[i].rest(), keys[i+1].rest()) >= 0)
+	  throw std::invalid_argument(std::string("File is unsorted(or has duplicate lines): ")+filepath);
 
       init(keys.size());
       build_impl(keys,alloca,0,keys.size(),0);
@@ -28,7 +32,12 @@ namespace Doar {
     bool build(const char** strs, uint32 str_count) {
       Allocator alloca;
       KeyStreamList keys(strs, str_count);
-      // TODO: sort check
+
+      // XXX:
+      // sort and uniquness check
+      for(std::size_t i=0; i < keys.size()-1; i++) 
+	if(strcmp(keys[i].rest(), keys[i+1].rest()) >= 0)
+	  throw std::invalid_argument(std::string("Input keys are unsorted or no unique"));
 
       init(keys.size());
       
@@ -37,27 +46,15 @@ namespace Doar {
     }
 
     // TODO: friend?
-    bool build(const BaseList& src_base, const ChckList& src_chck, const TindList& src_tind, const Tail& src_tail) {
+    void build(const BaseList& src_base, const ChckList& src_chck, const TindList& src_tind, const Tail& src_tail) {
       Allocator alloca;
       init(src_tind.size());
       tind=src_tind;
       tail=src_tail;
       build_impl(src_base,src_chck,alloca,src_base[0],0);
-      return true;
     }
 
     bool save(const char* filepath, bool do_shrink_tail=true) {
-      // [format]
-      // header{
-      //  node-size: 4byte
-      //  tail-size: 4byte
-      //  tind-size: 4byte
-      // }
-      // base: node-size*4byte
-      // chck: node-size
-      // tind: tind-size*4byte
-      // tail: tail-size
-      
       FILE *f;
       if((f=fopen(filepath,"wb"))==NULL)
 	return false;
@@ -66,27 +63,17 @@ namespace Doar {
 	ShrinkTail(tail,tind).shrink();
       
       // get size
-      header h={0,static_cast<uint32>(tind.size()),static_cast<uint32>(tail.size())};
-      
-      for(int32 i=static_cast<int32>(chck.size()-1); i>=0; i--)
-	if(chck[i].vacant()==false) {
-	  h.node_size=i+1;
-	  break;
-	}
+      Header h={static_cast<uint32>(chck.size()),static_cast<uint32>(tind.size()),static_cast<uint32>(tail.size())};
 
-      // 範囲外アクセスを防ぐために調整する
-      for(uint32 i=0; i < h.node_size; i++) {
-	Node n = base[i];
-	if(chck[i].vacant()==false && !n.is_leaf())
-	  if(n.base()+CODE_LIMIT-1 >= h.node_size)
-	    h.node_size = n.base()+CODE_LIMIT-1;
-      }
+      for(; h.node_size > 0 && !chck[h.node_size-1].in_use(); h.node_size--);
+      h.node_size += CODE_LIMIT; // NOTE: append padding area (for safe no check access on search time)
+
       base.resize(h.node_size);
       chck.resize(h.node_size);
 
-      fwrite(&h, sizeof(header), 1, f);
+      fwrite(&h, sizeof(Header), 1, f);
       fwrite(tind.data(), sizeof(uint32), h.tind_size, f);
-      fwrite(base.data(), sizeof(Node), h.node_size, f);
+      fwrite(base.data(), sizeof(Base), h.node_size, f);
       fwrite(chck.data(), sizeof(Chck), h.node_size, f);
       fwrite(tail.data(), sizeof(char), h.tail_size, f);
       fclose(f);
@@ -125,10 +112,10 @@ namespace Doar {
     }
 
     // XXX: for dev
-    void build_impl(const BaseList& src_base, const ChckList& src_chck, Allocator& alloca, Node old_root, NodeIndex new_root_idx) {
+    void build_impl(const BaseList& src_base, const ChckList& src_chck, Allocator& alloca, Base old_root, NodeIndex new_root_idx) {
       if(old_root.is_leaf()) {
 	// TODO:
-	insert_tail(new_root_idx, old_root.tail_index());
+	insert_tail(new_root_idx, old_root.id());
 	return;
       }
 
@@ -136,7 +123,7 @@ namespace Doar {
       {
 	NodeIndex beg = old_root.base();
 	for(Code c=0; c < CODE_LIMIT; c++)
-	  if(src_chck[beg+c].verify(c))
+	  if(src_chck[beg+c].trans_by(c))
 	    cs.push_back(c);
       }
       
@@ -154,11 +141,11 @@ namespace Doar {
 
     // XXX:
     void insert_tail(NodeIndex node, uint32 tind_idx) {
-      base.at(node).set_tail_index(tind_idx);
+      base.at(node).set_id(tind_idx);
     }
 
     void insert_tail(KeyStream in, NodeIndex node) {
-      base.at(node).set_tail_index(static_cast<TailIndex>(tind.size()));
+      base.at(node).set_id(static_cast<uint32>(tind.size()));
       if(in.eos()) {
 	tind.push_back(0); // NOTE: tail[0]=='\0'
 	return;
