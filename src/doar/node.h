@@ -27,7 +27,7 @@ namespace Doar {
   /********/
   /* Node */
   // NOTE: Actually, Node is the same to Base. 
-  //       But the former provide convenient interface for user.
+  //       But the former provide convenient (restricted?) interface for user.
   class Node : protected Base {
   public:
     Node() : Base() {}

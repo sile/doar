@@ -19,18 +19,26 @@ namespace Doar {
       return orig::operator[](idx);
     }
 
+    // Copy *this[from] value to *this[to],
+    // and initialize *this[from] by default T value.
     void shift(size_type from, size_type to) {
-      T tmp = at(from); // NOTE: avoid reference to old data_ ...
+      // TODO: ......
+      // NOTE: Value of at(from) must be saved as temporary value (not reference!),
+      //       because if size() < 'to' then call resize(), reference to at(from) became invalid.
+      //       So expression 'at(to) = at(from)' is danger that may be succeeded or may be failed denpend on compiler and compile options.
+      T tmp = at(from); 
       at(to) = tmp;
       operator[](from) = T();
     }
     
-    // TODO: C++0x
-    #ifndef _GLIBCXX_RESOLVE_LIB_DEFECTS
+    // NOTE: Definition of std::vector.data().
+    //       It is not part of C++ standard yet. (but part of C++0x)
+    //       G++ of a recent version has been implementing this method.
+#ifndef _GLIBCXX_RESOLVE_LIB_DEFECTS 
     const T* data() const {
       return orig::empty() ? NULL : &orig::front();
     }
-    #endif
+#endif
   };
 }
 
