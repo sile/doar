@@ -1,8 +1,8 @@
 #ifndef DOAR_SHRINK_TAIL_H
 #define DOAR_SHRINK_TAIL_H
 
-#include <vector>
 #include "types.h"
+#include <vector>
 
 namespace Doar {
   class ShrinkTail {

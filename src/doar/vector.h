@@ -4,7 +4,7 @@
 
 namespace Doar {
   template<typename T, unsigned PADDING=0>
-  class Vector : public std::vector<T> {
+    class Vector : public std::vector<T> {
     typedef std::vector<T> orig;
 
   public:
@@ -19,21 +19,22 @@ namespace Doar {
       return orig::operator[](idx);
     }
 
-    // Copy *this[from] value to *this[to],
-    // and initialize *this[from] by default T value.
+    // *this[from] is copied onto *this[to],
+    // and initialized by default T value.
     void shift(size_type from, size_type to) {
-      // TODO: ......
-      // NOTE: Value of at(from) must be saved as temporary value (not reference!),
-      //       because if size() < 'to' then call resize(), reference to at(from) became invalid.
-      //       So expression 'at(to) = at(from)' is danger that may be succeeded or may be failed denpend on compiler and compile options.
+      // NOTE: Brief next expression 'at(to) = at(from)' is danger.
+      //       Because reference of at(from) maybe become invalid if size() <= to.
+      //       (It's behavior is depends on your compiler and compiler options.) 
+      //       So it is required to save value of at(from) in temporary variable
+      //       and then assign it on at(to).
       T tmp = at(from); 
       at(to) = tmp;
       operator[](from) = T();
     }
     
     // NOTE: Definition of std::vector.data().
-    //       It is not part of C++ standard yet. (but part of C++0x)
-    //       G++ of a recent version has been implementing this method.
+    //       This method is not part of C++ standard yet. (but part of C++0x)
+    //       G++ of a recent version has been implementing this with below macro constant.
 #ifndef _GLIBCXX_RESOLVE_LIB_DEFECTS 
     const T* data() const {
       return orig::empty() ? NULL : &orig::front();
