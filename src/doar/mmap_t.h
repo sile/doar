@@ -3,7 +3,7 @@
 
 #if defined(WIN32) || defined(WIN64)
 // Windows
-#include <winbase.h>
+#include <windows.h>
 
 struct mmap_t {
   // NOTE: Variable 'flags' is ignored under Windows.

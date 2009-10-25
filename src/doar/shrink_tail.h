@@ -3,6 +3,7 @@
 
 #include "types.h"
 #include <vector>
+#include <algorithm>
 
 namespace Doar {
   class ShrinkTail {
