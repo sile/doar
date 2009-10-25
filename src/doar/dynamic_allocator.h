@@ -7,7 +7,7 @@
 #include <cassert>
 
 namespace Doar {
-  using std::max; // NOTE: for Windows macro
+  using std::max;  // NOTE: Measure against same name macro defined under Windows.
 
   class DynamicAllocator {
     struct Link {
@@ -46,7 +46,8 @@ namespace Doar {
       init(static_cast<uint32>(node_size*1.5));
 
       for(NodeIndex i=0; i < node_size; i++) {
-	if(!base[i].is_leaf())  // XXX: INVALID is leaf という条件に依存している。 TODO: ドキュメント化
+	// NOTE: Below expression depends on (or assume) the condition that Node::INVALID.is_leaf() return true.
+	if(!base[i].is_leaf())  
 	  bset[base[i].base()].flip();
 	
 	if(chck[i].in_use())
@@ -60,7 +61,7 @@ namespace Doar {
     }
 
     void alloc(NodeIndex node) {
-      while (node >= lnk.size()-1) // 最後のnodeは特別なので-1する
+      while (node >= lnk.size()-1) // invariant: lnk[lnk.size()-1].next==0
 	resize_link();
 
       if(node==beg_idx)
@@ -70,7 +71,7 @@ namespace Doar {
     }
 
     bool is_free(NodeIndex idx) const {
-      // MEMO:
+      // NOTE: lnk[CODE_LIMIT] has been reserved for special usage.
       return idx!=CODE_LIMIT && lnk[idx].next!=0;
     }
 
@@ -88,7 +89,7 @@ namespace Doar {
       lnk[idx].next = cur;
     }
     
-    // XXX: Below code assume that CODES is already sorted.
+    // NOTE: This method assume that variable codes is already sorted.
     NodeIndex x_check(const CodeList& codes) {
       assert(beg_idx>=CODE_LIMIT);
       
@@ -141,7 +142,7 @@ namespace Doar {
 
       for(NodeIndex i=static_cast<NodeIndex>(lnk.size()); i < end; i++) 
 	lnk.push_back(Link(i-1,i+1));
-      lnk.back().next=0; // 末尾 -> 先頭
+      lnk.back().next=0;  // invariant: lnk[lnk.size()-1].next==0
     }
 
     void alloc_impl(NodeIndex node) {

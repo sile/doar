@@ -13,7 +13,7 @@ namespace Doar {
   public:
     Vector() : orig() {}
     Vector(size_type n) : orig(n) {}
-
+    
     T& at(size_type idx) {
       for(; idx+PADDING >= orig::size(); orig::resize(orig::size()*2));
       return orig::operator[](idx);
@@ -34,8 +34,8 @@ namespace Doar {
     
     // NOTE: Definition of std::vector.data().
     //       This method is not part of C++ standard yet. (but part of C++0x)
-    //       G++ of a recent version has been implementing this with below macro constant.
-#ifndef _GLIBCXX_RESOLVE_LIB_DEFECTS 
+    //       Some C++ compiler have been implemeting this method. (see types.h)
+#ifndef VECTOR_HAS_MEMBER_NAMED_DATA
     const T* data() const {
       return orig::empty() ? NULL : &orig::front();
     }

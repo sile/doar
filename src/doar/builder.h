@@ -6,46 +6,43 @@
 #include "static_allocator.h"
 #include "shrink_tail.h"
 #include "node.h"
-#include "../util/gettime.h"
-#include <stdexcept>
 
 namespace Doar {
   class Builder {
     typedef StaticAllocator Allocator;
     
   public:
-    bool build(const char* filepath) {
+    int build(const char* filepath) {
       Allocator alloca;
       KeyStreamList keys(filepath);
       if(!keys)
-	return false;
+	return -1;
 
       // sort and uniquness check
       for(std::size_t i=0; i < keys.size()-1; i++) 
 	if(strcmp(keys[i].rest(), keys[i+1].rest()) >= 0)
-	  throw std::invalid_argument(std::string("File is unsorted(or has duplicate lines): ")+filepath);
+	  return -2;
 
       init(keys.size());
       build_impl(keys,alloca,0,keys.size(),0);
-      return true;
+      return 0;
     }
-    bool build(const char** strs, uint32 str_count) {
+
+    int build(const char** strs, uint32 str_count) {
       Allocator alloca;
       KeyStreamList keys(strs, str_count);
 
-      // XXX:
       // sort and uniquness check
       for(std::size_t i=0; i < keys.size()-1; i++) 
 	if(strcmp(keys[i].rest(), keys[i+1].rest()) >= 0)
-	  throw std::invalid_argument(std::string("Input keys are unsorted or no unique"));
-
+	  return -2;
+      
       init(keys.size());
       
       build_impl(keys,alloca,0,keys.size(),0);
-      return true;
+      return 0;
     }
 
-    // TODO: friend?
     void build(const BaseList& src_base, const ChckList& src_chck, const TindList& src_tind, const Tail& src_tail) {
       Allocator alloca;
       init(src_tind.size());
@@ -83,6 +80,7 @@ namespace Doar {
     std::size_t size() const { return tind.size(); }
     
   private:
+    // Build trie from KeyStreamList
     void build_impl(KeyStreamList& keys, Allocator& alloca, std::size_t beg, std::size_t end, NodeIndex root_idx) {
       if(end-beg==1) {
 	insert_tail(keys[beg],root_idx);
@@ -93,7 +91,7 @@ namespace Doar {
       CodeList cs;
       Code prev=VACANT_CODE;
 
-      // 
+      // Collect arc
       for(std::size_t i=beg; i < end; i++) {
 	Code cur = keys[i].read();
 	if(prev != cur) {
@@ -104,28 +102,25 @@ namespace Doar {
 	}
       }
       end_list.push_back(end);
-      
-      //
+
+      // Set child node and do next iteration recursively.
       NodeIndex x = alloca.x_check(cs);
       for(std::size_t i=0; i<cs.size(); i++) 
 	build_impl(keys, alloca,end_list[i],end_list[i+1], set_node(cs[i],root_idx,x));
     }
 
-    // XXX: for dev
+    // Build trie from other DoubleArray trie elements.
     void build_impl(const BaseList& src_base, const ChckList& src_chck, Allocator& alloca, Base old_root, NodeIndex new_root_idx) {
       if(old_root.is_leaf()) {
-	// TODO:
-	insert_tail(new_root_idx, old_root.id());
+	base.at(new_root_idx).set_id(old_root.id());
 	return;
       }
-
+      
       CodeList cs;
-      {
-	NodeIndex beg = old_root.base();
-	for(Code c=0; c < CODE_LIMIT; c++)
-	  if(src_chck[beg+c].trans_by(c))
-	    cs.push_back(c);
-      }
+      NodeIndex beg = old_root.base();
+      for(Code c=0; c < CODE_LIMIT; c++)
+	if(src_chck[beg+c].trans_by(c))
+	  cs.push_back(c);
       
       NodeIndex x = alloca.x_check(cs);
       for(std::size_t i=0; i < cs.size(); i++)
@@ -139,15 +134,10 @@ namespace Doar {
       return next;
     }
 
-    // XXX:
-    void insert_tail(NodeIndex node, uint32 tind_idx) {
-      base.at(node).set_id(tind_idx);
-    }
-
     void insert_tail(KeyStream in, NodeIndex node) {
       base.at(node).set_id(static_cast<uint32>(tind.size()));
       if(in.eos()) {
-	tind.push_back(0); // NOTE: tail[0]=='\0'
+	tind.push_back(0); // NOTE: Invariant: tail[0]=='\0'
 	return;
       }
 
@@ -156,6 +146,7 @@ namespace Doar {
       tail += '\0';
     }
 
+    // XXX: There is room for change.
     void init(std::size_t key_num) {
       base.clear();
       base.resize(key_num*2);
@@ -172,7 +163,7 @@ namespace Doar {
   private:
     BaseList base;
     ChckList chck;
-    TindList tind; // TODO: replace to data array [chckに入れる?]
+    TindList tind; 
     Tail     tail; 
   };
 }

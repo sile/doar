@@ -7,7 +7,7 @@
 namespace Doar {
   class KeyStream {
   public:
-    // NOTE: key is NULL terminated string.  It can't contain '0xFF' character.
+    // NOTE: key is NULL terminated string.  And it can't contain '0xFF' character.
     KeyStream(const char* key) : cur(key) {}
     KeyStream(){}
     
@@ -29,7 +29,7 @@ namespace Doar {
 	return;
     
       fseek(f,0,SEEK_END);
-      long file_size = ftell(f); // NOTE: File size limit is 2^(sizeof(long)-1)
+      long file_size = ftell(f); // NOTE: File size limit is 2^(sizeof(long)-1) byte
       fseek(f,0,SEEK_SET);
       
       if(file_size != -1){

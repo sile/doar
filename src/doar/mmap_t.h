@@ -2,11 +2,11 @@
 #define MMAP_T_H
 
 #if defined(WIN32) || defined(WIN64)
-// for Windows
-#include <windows.h>
+// Windows
+#include <winbase.h>
 
 struct mmap_t {
-  // NOTE: Variable 'flags' is ignored on Windows
+  // NOTE: Variable 'flags' is ignored under Windows.
   mmap_t(const char* path, bool write_mode=false, int flags=0) : ptr(NULL) {
     DWORD fileAccess = write_mode ? GENERIC_READ|GENERIC_WRITE : GENERIC_READ;
     DWORD flProtect  = write_mode ? PAGE_READWRITE : PAGE_READONLY;
@@ -34,7 +34,7 @@ struct mmap_t {
 };
 
 #else
-// for unix
+// NOTE: Assume Unix compatible (POSIX conformance?) environment.
 
 #include <sys/stat.h>
 #include <sys/mman.h>

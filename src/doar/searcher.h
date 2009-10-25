@@ -7,12 +7,12 @@
 #include "mmap_t.h"
 
 namespace Doar {
-  // TODO: comment for assumption
   class SearcherBase {
   public:
-    SearcherBase(const Base* base, const Chck* chck, const uint32* tind, const char* tail) 
+    SearcherBase(const Base* base, const Chck* chck, const TailIndex* tind, const char* tail) 
       : base(base),chck(chck),tind(tind),tail(tail) {}
 
+    // NOTE: key is NULL terminated string.  And it can't contain '0xFF' character.
     Node search(const char* key) const {
       Node node=root_node();
       KeyStream in(key); 
@@ -123,10 +123,10 @@ namespace Doar {
     }
    
   protected:
-    const Base*   base; // BASE array
-    const Chck*   chck; // CHECK array
-    const uint32* tind; // TAIL index array  -> TailIndex* TODO:
-    const char*   tail; // TAIL array
+    const Base*      base; // BASE array
+    const Chck*      chck; // CHECK array
+    const TailIndex* tind; // TAIL index array
+    const char*      tail; // TAIL array
   };
 
   class Searcher : public SearcherBase {
@@ -137,7 +137,7 @@ namespace Doar {
 
       // TODO: format check
       memcpy(&h,mm.ptr,sizeof(Header));
-      tind = reinterpret_cast<const uint32*>(static_cast<char*>(mm.ptr)+sizeof(Header));
+      tind = reinterpret_cast<const TailIndex*>(static_cast<char*>(mm.ptr)+sizeof(Header));
       base = reinterpret_cast<const Base*>(tind+h.tind_size);
       chck = reinterpret_cast<const Chck*>(base+h.node_size);
       tail = reinterpret_cast<const char*>(chck + h.node_size);

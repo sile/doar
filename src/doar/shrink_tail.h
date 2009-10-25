@@ -19,7 +19,6 @@ namespace Doar {
       
       std::sort(terminal_indices.begin(), terminal_indices.end(), tail_gt);
       
-      //
       Tail new_tail;
       new_tail.reserve(tail.size()/2);
       new_tail += '\0';
@@ -29,7 +28,7 @@ namespace Doar {
 	
 	TailIndex tail_idx = static_cast<TailIndex>(new_tail.size());
 	if(i>0 && can_share(terminal_indices[i-1], p)) {
-	  tail_idx -= p.tail_len+1; // +1は、末尾の'\0'分
+	  tail_idx -= p.tail_len+1; // +1 is necessary for last '\0' character
 	} else {
 	  new_tail += p.tail;
 	  new_tail += '\0';
@@ -48,18 +47,19 @@ namespace Doar {
       int tail_len;
     };
 
-    // lftがrgtを包含しているか?
+    // Is lft including rgt ?
     bool can_share(const ShrinkRecord& lft, const ShrinkRecord& rgt) const {
       const char* lp = lft.tail;
       const char* rp = rgt.tail;
 
       for(int li=lft.tail_len-1, ri=rgt.tail_len-1;; li--, ri--) {
-	if(ri < 0)                return true;  // MEMO: 先にriをチェックするのは重要
+	if(ri < 0)                return true;  // NOTE: ri must be checked before li.
 	else if(li < 0)           return false;
 	else if(lp[li] != rp[ri]) return false;
       }
     }
     
+    // Is lft greater than rgt ?
     static bool tail_gt (const ShrinkRecord& lft, const ShrinkRecord& rgt) {
       const char* lp = lft.tail;
       const char* rp = rgt.tail;

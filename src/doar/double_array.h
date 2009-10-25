@@ -10,7 +10,7 @@
 #include "shrink_tail.h"
 
 namespace Doar {
-  using std::min; // NOTE: for Windows macro
+  using std::min; // NOTE: Measure against same name macro defined under Windows.
     
   class DoubleArray {
     typedef DynamicAllocator Allocator;
@@ -104,14 +104,14 @@ namespace Doar {
     std::size_t size() const { return tind.size(); }
 
   private:
-    // TODO: 
+    // XXX: There is room for improvement.
     void init() {
       base.clear();
       base.resize(0x10000);
       chck.clear();
       chck.resize(0x10000);
 
-      base[0].set_base(1);  // XXX: ???
+      base[0].set_base(1);  // TODO: Think well.
       
       tind.clear();
       tail.clear();
@@ -174,7 +174,7 @@ namespace Doar {
     void insert_tail(KeyStream in, NodeIndex idx) {
       base.at(idx).set_id(static_cast<TailIndex>(tind.size()));
       if(in.eos()) {
-	tind.push_back(0); // NOTE: tail[0]=='\0'
+	tind.push_back(0); // NOTE: invariant: tail[0]=='\0'
 	return;
       }
       

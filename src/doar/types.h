@@ -4,17 +4,17 @@
 #include <string>
 #include "vector.h"
 
-namespace Doar {
-  // NOTE: Portability note
-  //   Please redefine 32bit(4byte) unsigned integer type
-  //   if sizeof(unsigned) != 8 on your environment.
-  typedef unsigned uint32;
+// NOTE: G++ of a recent version has been implementing std::vector.data() method 
+//       with below macro constant.
+//       if your compiler also has been implementing this, please define it.
+#ifdef _GLIBCXX_RESOLVE_LIB_DEFECTS 
+# define VECTOR_HAS_MEMBER_NAMED_DATA
+#endif
 
-  //class Node;   
-  //class Base;
-  //class Chck;
-  //class BaseList;
-  //class ChckList;
+namespace Doar {
+  // NOTE: Please redefine 32bit(4byte) unsigned integer type
+  //       if sizeof(unsigned) != 4 on your environment.
+  typedef unsigned uint32;
 
   typedef uint32 NodeIndex;
   typedef uint32 ElemID;

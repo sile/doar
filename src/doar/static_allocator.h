@@ -49,7 +49,7 @@ namespace Doar {
 	last_idx=root.append(1,PER_LINK_SIZE);
 
 	// NOTE: For data compatibility with class DynamicAllocator, 
-	//       the following code ensure base[CODE_LIMIT] is always unused.
+	//       the following code ensure that base[CODE_LIMIT] is always unused.
 	ForwardLink* tmp=&root;
 	for(;; tmp=tmp->next)
 	  if(tmp->next->idx==CODE_LIMIT) {
@@ -63,7 +63,7 @@ namespace Doar {
       root.delete_all_tail();
     }
     
-    // NOTE: This method assume that codes is passed in sorted order.
+    // NOTE: This method assume that variable codes is already sorted.
     NodeIndex x_check(const CodeList& codes, ForwardLink* prev=NULL) {
       if(!prev) prev=&root;
       ForwardLink *cur = prev->next;
@@ -73,8 +73,8 @@ namespace Doar {
       for(uint32 cnt=0; cur->next; prev=cur,cur=cur->next,cnt++) {
 	NodeIndex x = cur->idx - min_cd;
 	if(!bset[x] && can_allocate(cur, codes, x)) {
-	  if(cnt>TRY_ALLOC_THRESHOLD)
-	    root.remove_next(); // MEMO: 過度に冗長なループを省く
+	  if(cnt > TRY_ALLOC_THRESHOLD)
+	    root.remove_next(); // reduce too redundant loop
 	  
 	  bset[x].flip();
 	  alloc(prev,codes,x);
