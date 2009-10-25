@@ -4,9 +4,9 @@
 
 namespace Doar {
   template<typename T, unsigned PADDING=0>
-    class Vector : public std::vector<T> {
+  class Vector : public std::vector<T> {
     typedef std::vector<T> orig;
-
+    
   public:
     typedef typename orig::size_type size_type;
 
