@@ -13,7 +13,7 @@ public:
       	      << str.substr(beg,offset) <<"\033[0m"         // 一致文字列を赤字で表示
 	      << str.substr(beg+offset) << std::endl;
     print_lattice next(srch,str,beg+offset); // 再帰的に処理する
-    srch.common_prefix_search(key+offset,next);
+    srch.each_common_prefix(key+offset,next);
   }
 private:
   const Doar::Searcher& srch;
@@ -54,13 +54,13 @@ int main(int argc, char** argv) {
     case '+':
       // common prefix search
       {
-	srch.common_prefix_search<PRINT_FN_TYPE>(word.c_str(), print_common_prefix);
+	srch.each_common_prefix<PRINT_FN_TYPE>(word.c_str(), print_common_prefix);
       }
       break;
     case '~':
       {
 	std::string key =  word.substr(0,word.size()-1);
-	srch.common_prefix_search(key.c_str(), print_lattice(srch,key,0));
+	srch.each_common_prefix(key.c_str(), print_lattice(srch,key,0));
       }
       break;
     default:

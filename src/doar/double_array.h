@@ -55,15 +55,15 @@ namespace Doar {
     Node search(const char* key, Node& root_node) const { return srch().search(key,root_node); }
     
     template<typename Callback>
-    void common_prefix_search(const char* key, Node root_node, const Callback& fn) const
-    { return srch().common_prefix_search(key,root_node,fn); }
+    void each_common_prefix(const char* key, Node root_node, const Callback& fn) const
+    { return srch().each_common_prefix(key,root_node,fn); }
 
     template<typename Callback>
-    void common_prefix_search(const char* key, const Callback& fn) const
-    { return srch().common_prefix_search(key,fn); }
+    void each_common_prefix(const char* key, const Callback& fn) const
+    { return srch().each_common_prefix(key,fn); }
 
     template<typename Callback>
-    void children(Node parent, const Callback& fn) const { return srch().children(parent,fn); }
+    void each_child(Node parent, const Callback& fn) const { return srch().each_child(parent,fn); }
       
     
     /*****************/

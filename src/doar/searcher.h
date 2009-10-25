@@ -46,7 +46,7 @@ namespace Doar {
     }
 
     template<typename Callback>
-    void common_prefix_search(const char* key, const Callback& fn) const {
+    void each_common_prefix(const char* key, const Callback& fn) const {
       Node node = root_node();
       uint32 offset=0;
       KeyStream in(key);
@@ -69,7 +69,7 @@ namespace Doar {
     }   
 
     template<typename Callback>
-    void common_prefix_search(const char* key, Node root_node, const Callback& fn) const {
+    void each_common_prefix(const char* key, Node root_node, const Callback& fn) const {
       if(root_node.is_leaf())
 	return;
 
@@ -95,7 +95,7 @@ namespace Doar {
     }  
 
     template<typename Callback>
-    void children(Node parent, const Callback& fn) const {
+    void each_child(Node parent, const Callback& fn) const {
       if(parent.is_leaf())
 	return;
       

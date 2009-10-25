@@ -41,7 +41,7 @@ namespace {
 	rb_yield_values(2,INT2FIX(node.id()), rb_str_new2(buf.c_str()));
       } else {
 	len++;
-	srch.children(node,*this);
+	srch.each_child(node,*this);
 	len--;
       }
       // XXX: std::stringでは小さくresizeしても確保したメモリが解放されないと仮定した処理
@@ -108,7 +108,7 @@ extern "C" {
     Data_Get_Struct(self, Doar::Searcher, ptr);
 
     Doar::Node n = ptr->search(StringValuePtr(key));
-    return n.valid() ? INT2FIX(n.id()) : Qnil;
+    return n ? INT2FIX(n.id()) : Qnil;
   }
   
   VALUE srch_member(VALUE self, VALUE key) {
@@ -116,7 +116,7 @@ extern "C" {
     Data_Get_Struct(self, Doar::Searcher, ptr);  
     
     Doar::Node n = ptr->search(StringValuePtr(key));
-    return n.valid() ? Qtrue : Qfalse;
+    return n ? Qtrue : Qfalse;
   }
 
   VALUE srch_common_prefix_search(VALUE self, VALUE key) {
@@ -124,7 +124,7 @@ extern "C" {
     Data_Get_Struct(self, Doar::Searcher, ptr); 
 
     Collect fn(*ptr);
-    ptr->common_prefix_search(StringValuePtr(key), fn);
+    ptr->each_common_prefix(StringValuePtr(key), fn);
     return fn.getArray();
   }
 
@@ -132,7 +132,7 @@ extern "C" {
     Doar::Searcher* ptr;
     Data_Get_Struct(self, Doar::Searcher, ptr); 
 
-    ptr->common_prefix_search(StringValuePtr(key), cps_yield);
+    ptr->each_common_prefix(StringValuePtr(key), cps_yield);
     return Qnil;
   }
 
@@ -144,12 +144,12 @@ extern "C" {
     Doar::Searcher* ptr;
     Data_Get_Struct(self, Doar::Searcher, ptr); 
     if(root_str==Qnil) {
-      ptr->children(ptr->root_node(), YieldAllKey(*ptr));
+      ptr->each_child(ptr->root_node(), YieldAllKey(*ptr));
     } else {
       Doar::Node root=ptr->root_node();
       const char* base = StringValuePtr(root_str);
       ptr->search(base,root);
-      ptr->children(root, YieldAllKey(*ptr, omit_base==Qtrue?"":base));
+      ptr->each_child(root, YieldAllKey(*ptr, omit_base==Qtrue?"":base));
     }
     return Qnil;
   }
