@@ -16,12 +16,12 @@ namespace Doar {
       Allocator alloca;
       KeyStreamList keys(filepath);
       if(!keys)
-	return -1;
+	return 1;
 
       // sort and uniquness check
       for(std::size_t i=0; i < keys.size()-1; i++) 
 	if(strcmp(keys[i].rest(), keys[i+1].rest()) >= 0)
-	  return -2;
+	  return 2;
 
       init(keys.size());
       build_impl(keys,alloca,0,keys.size(),0);
@@ -35,7 +35,7 @@ namespace Doar {
       // sort and uniquness check
       for(std::size_t i=0; i < keys.size()-1; i++) 
 	if(strcmp(keys[i].rest(), keys[i+1].rest()) >= 0)
-	  return -2;
+	  return 2;
       
       init(keys.size());
       
@@ -60,7 +60,11 @@ namespace Doar {
 	ShrinkTail(tail,tind).shrink();
       
       // get size
-      Header h={static_cast<uint32>(chck.size()),static_cast<uint32>(tind.size()),static_cast<uint32>(tail.size())};
+      Header h={{'\0'},
+		static_cast<uint32>(chck.size()),
+		static_cast<uint32>(tind.size()),
+		static_cast<uint32>(tail.size())};
+      strcpy(h.magic_s,MAGIC_STRING);
 
       for(; h.node_size > 0 && !chck[h.node_size-1].in_use(); h.node_size--);
       h.node_size += CODE_LIMIT; // NOTE: append padding area (for safe no check access on search time)

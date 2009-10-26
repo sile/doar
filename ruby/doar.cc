@@ -1,5 +1,5 @@
 #include <ruby.h>
-#include "../src/doar/searcher.h"
+#include <doar/searcher.h>
 #include <string>
 
 namespace {
@@ -10,8 +10,8 @@ namespace {
     
     void operator()(const char* key, unsigned offset, unsigned id) const {
       VALUE obj=rb_ary_new2(2);
-      rb_ary_store(obj,0,INT2FIX(id));
-      rb_ary_store(obj,1,INT2FIX(offset));
+      rb_ary_store(obj,0,INT2FIX(offset));
+      rb_ary_store(obj,1,INT2FIX(id));
       
       rb_ary_push(ary, obj);
     }
@@ -22,9 +22,9 @@ namespace {
     VALUE ary;
   };
 
-  // common prefix search yield
+  // Common Prefix Search yield
   void cps_yield(const char*key, unsigned offset, unsigned id) {
-    rb_yield_values(2,INT2FIX(id),INT2FIX(offset));
+    rb_yield_values(2,INT2FIX(offset),INT2FIX(id));
   }
 
   class YieldAllKey {
@@ -38,14 +38,13 @@ namespace {
       buf += c;
       if(node.is_leaf()) {
 	buf += tail;
-	rb_yield_values(2,INT2FIX(node.id()), rb_str_new2(buf.c_str()));
+	rb_yield_values(2, rb_str_new2(buf.c_str()), INT2FIX(node.id()));
       } else {
 	len++;
 	srch.each_child(node,*this);
 	len--;
       }
-      // XXX: std::stringでは小さくresizeしても確保したメモリが解放されないと仮定した処理
-      //    : この仮定が満たされない場合でも、動作はするが、効率は悪くなる
+
       buf.resize(len);
     }
   private:
@@ -56,10 +55,10 @@ namespace {
 }
 
 extern "C" {
-  VALUE srch_new(VALUE klass, VALUE doar_data_file_path);
+  VALUE srch_new(VALUE klass, VALUE doar_index_file_path);
   VALUE srch_delete(Doar::Searcher *ptr);
   VALUE srch_bracket(VALUE self, VALUE key);
-  VALUE srch_member(VALUE self, VALUE key);
+  VALUE srch_key(VALUE self, VALUE key);
   VALUE srch_common_prefix_search(VALUE self, VALUE key);
   VALUE srch_each_common_prefix(VALUE self, VALUE key);
   VALUE srch_each(int argc, VALUE *argv, VALUE self);
@@ -84,20 +83,32 @@ extern "C" {
     VALUE cSrch = rb_define_class_under(mdl,"Searcher",rb_cObject);
     rb_define_singleton_method(cSrch,"new",(VALUE (*)(...))srch_new,1);
     rb_define_method(cSrch, "[]", (VALUE (*)(...))srch_bracket, 1);
-    rb_define_method(cSrch, "member?", (VALUE (*)(...))srch_member, 1);
+    rb_define_method(cSrch, "key?", (VALUE (*)(...))srch_key, 1);
     rb_define_method(cSrch, "common_prefix_search", (VALUE (*)(...))srch_common_prefix_search, 1);
     rb_define_method(cSrch, "each_common_prefix", (VALUE (*)(...))srch_each_common_prefix, 1);    
     rb_define_method(cSrch, "each", (VALUE (*)(...))srch_each, -1);
     rb_define_method(cSrch, "size", (VALUE (*)(...))srch_size, 0);
   }
   
-  VALUE srch_new(VALUE klass, VALUE doar_data_file_path){
+  VALUE srch_new(VALUE klass, VALUE doar_index_file_path){
     Doar::Searcher* ptr;
     VALUE obj = Data_Make_Struct(klass,Doar::Searcher,NULL,srch_delete,ptr);
-    new ((void*)ptr) Doar::Searcher(StringValuePtr(doar_data_file_path));
+    const char* path=StringValuePtr(doar_index_file_path);
+    new ((void*)ptr) Doar::Searcher(path);
+
+    // TODO: use name, error message
+    switch(ptr->status) {
+    case 1:
+      rb_raise(rb_eArgError,"Can't open file: %s", path);
+    case 2:
+      rb_raise(rb_eArgError,"This file isn't Doar index file: %s", path);
+    case 3:
+      rb_raise(rb_eArgError,"This index file is broken: %s", path);
+    }
+    
     return obj;
   }
-  
+ 
   VALUE srch_delete(Doar::Searcher *ptr){
     ptr->~Searcher();
     ruby_xfree(ptr);
@@ -111,7 +122,7 @@ extern "C" {
     return n ? INT2FIX(n.id()) : Qnil;
   }
   
-  VALUE srch_member(VALUE self, VALUE key) {
+  VALUE srch_key(VALUE self, VALUE key) {
     Doar::Searcher* ptr;
     Data_Get_Struct(self, Doar::Searcher, ptr);  
     

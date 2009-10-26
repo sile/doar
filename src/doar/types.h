@@ -25,8 +25,10 @@ namespace Doar {
   typedef Vector<TailIndex> TindList;  // Tail INDex List
   typedef std::string       Tail;
   
+  const char* MAGIC_STRING="doar-000";
   struct Header {
-    uint32 node_size;  // BASE and CHECK array size
+    char magic_s[8];  // 'doar-xxx'
+    uint32 node_size; // BASE and CHECK array size
     uint32 tind_size; 
     uint32 tail_size; 
   };

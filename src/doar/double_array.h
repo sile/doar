@@ -36,7 +36,6 @@ namespace Doar {
 	  if(next.is_leaf()) {
 	    if(in.eos() || key_exists(in, next))
 	      return false;
-	    
 	    tail_collision_case(in, next_idx);
 	    return true;
 	  } 
@@ -78,16 +77,32 @@ namespace Doar {
 
     void clear() { init(); }
 
-    bool load(const char* path) {
+    // TODO: use ENUM?
+    int load(const char* path) {
       init();
-
+      
       mmap_t mm(path);
       if(!mm) 
-	return false;
-
-      // TODO: format check      
+	return 1;
+      
       Header h;
       memcpy(&h,mm.ptr,sizeof(Header));
+      
+      // data validation
+      {
+	if(strcmp(h.magic_s, MAGIC_STRING)!=0)
+	  return 2;
+	
+	unsigned total_size = 
+	  sizeof(Header) + 
+	  sizeof(TailIndex)*h.tind_size +
+	  sizeof(Base)*h.node_size + 
+	  sizeof(Chck)*h.node_size +
+	  sizeof(char)*h.tail_size;
+	
+	if(mm.size != total_size)
+	  return 3;
+      }
 
       void* beg=static_cast<char*>(mm.ptr)+sizeof(Header);
       beg = assign(tind, static_cast<uint32 *>(beg), h.tind_size); 
@@ -96,7 +111,7 @@ namespace Doar {
       beg = assign(tail, static_cast<char*>(beg), h.tail_size);
 
       alloca.restore_condition(base.data(),chck.data(),h.node_size);
-      return true;
+      return 0;
     }
 
     /*********/

@@ -131,24 +131,48 @@ namespace Doar {
 
   class Searcher : public SearcherBase {
   public:
-    Searcher(const char* filepath) : mm(filepath) {
-      if(!mm) 
-	return;
+    Searcher(const char* filepath) : mm(filepath), status(init(filepath)) {}
 
-      // TODO: format check
+
+    operator    bool() const { return status==0; }
+    std::size_t size() const { return h.tind_size; }
+    
+  private:
+    int init(const char* filepath) {
+      if(!mm)
+	return 1;
+
       memcpy(&h,mm.ptr,sizeof(Header));
+
+      // data validation
+      {
+	if(strcmp(h.magic_s, MAGIC_STRING)!=0)
+	  return 2;
+	
+	unsigned total_size = 
+	  sizeof(Header) + 
+	  sizeof(TailIndex)*h.tind_size +
+	  sizeof(Base)*h.node_size + 
+	  sizeof(Chck)*h.node_size +
+	  sizeof(char)*h.tail_size;
+	
+	if(mm.size != total_size)
+	  return 3;
+      }
+
       tind = reinterpret_cast<const TailIndex*>(static_cast<char*>(mm.ptr)+sizeof(Header));
       base = reinterpret_cast<const Base*>(tind+h.tind_size);
       chck = reinterpret_cast<const Chck*>(base+h.node_size);
       tail = reinterpret_cast<const char*>(chck + h.node_size);
+      return 0;
     }
-
-    operator    bool() const { return (bool)mm; }
-    std::size_t size() const { return h.tind_size; }
-
+    
   private:
     const mmap_t mm;
     Header h;
+
+  public:
+    const int status;
   };
 }
 #endif

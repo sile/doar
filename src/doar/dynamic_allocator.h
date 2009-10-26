@@ -48,7 +48,7 @@ namespace Doar {
       for(NodeIndex i=0; i < node_size; i++) {
 	// NOTE: Below expression depends on (or assume) the condition that Node::INVALID.is_leaf() return true.
 	if(!base[i].is_leaf())  
-	  bset[base[i].base()].flip();
+	  bset[base[i].base()]=true;
 	
 	if(chck[i].in_use())
 	  alloc(i);

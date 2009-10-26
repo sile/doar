@@ -1,18 +1,26 @@
-OPT=-O3 -Wall
+CXXFLAGS=-O3 -Wall
+CXX=g++
+INSTALL_DIR=/usr/local/bin
+INCLUDE_DIR=/usr/local/include
+
 DOAR=src/doar
 CMD=src/command
 HEADERS=${DOAR}/key_stream.h ${DOAR}/node.h ${DOAR}/searcher.h ${DOAR}/types.h ${DOAR}/static_allocator.h ${DOAR}/dynamic_allocator.h ${DOAR}/double_array.h ${DOAR}/shrink_tail.h ${DOAR}/builder.h ${DOAR}/vector.h
 
-all: bin/doar bin/mkdoar bin/doar_test bin/mkddar
+all: bin/doar bin/mkdoar bin/ckdoar
 
 bin/doar: ${CMD}/doar.cc ${HEADERS}
-	g++ ${OPT} -o ${@} ${CMD}/doar.cc
+	${CXX} ${CXXFLAGS} -o ${@} ${CMD}/doar.cc
 
-bin/doar_test: ${CMD}/doar_test.cc ${HEADERS}
-	g++ ${OPT} -o ${@} ${CMD}/doar_test.cc
+bin/ckdoar: ${CMD}/ckdoar.cc ${HEADERS}
+	${CXX} ${CXXFLAGS} -o ${@} ${CMD}/ckdoar.cc
 
 bin/mkdoar: ${CMD}/mkdoar.cc ${HEADERS}
-	g++ ${OPT} -o ${@} ${CMD}/mkdoar.cc
+	${CXX} ${CXXFLAGS} -o ${@} ${CMD}/mkdoar.cc
 
-bin/mkddar: ${CMD}/mkddar.cc ${HEADERS}
-	g++ ${OPT} -o ${@} ${CMD}/mkddar.cc
+install: bin/doar bin/mkdoar bin/ckdoar
+	cp bin/* ${INSTALL_DIR}/
+	cp -r ${DOAR} ${INCLUDE_DIR}/ 
+
+clean: 
+	rm bin/*
