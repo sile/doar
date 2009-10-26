@@ -5,15 +5,20 @@
 
 int main(int argc, char** argv) {
   if(argc < 3) {
-    std::cerr <<"Usage: "<<argv[0]<<" <doar-index-file> <word-list-file> [loop-count]" << std::endl;
+    std::cerr <<"Usage: "<<basename(argv[0])<<" <index-file> <word-list-file> [loop-count]" << std::endl;
     return 1;
   }
   
+  double beg_t = gettime(); 
+  std::cerr << "=== Load from " << argv[1] << " ===" << std::endl;
   Doar::Searcher srch(argv[1]);
   if(!srch) {
     std::cerr <<"Can't open file: "<<argv[1] << std::endl;
     return 1;
   }
+  std::cerr << "Key set size: " << srch.size() << std::endl;
+  std::cerr << "Elapsed: " << gettime()-beg_t << " sec" << std::endl << std::endl;
+
 
   ReadLine rl(argv[2]);
   if(!rl) {
@@ -26,8 +31,9 @@ int main(int argc, char** argv) {
 
   int cnt=0, err=0;
   const char* line;
-  double beg_t = gettime(); 
 
+  std::cerr << "=== Search ===" << std::endl;
+  beg_t = gettime(); 
   for(int i=0; i < TIMES; i++) {
     rl.reset();
     while((line=rl.read())) {
@@ -41,7 +47,8 @@ int main(int argc, char** argv) {
   }
   
   std::cerr << "Not Found: " << err << "/" << cnt << std::endl;
-  std::cerr << "Elapsed: " << gettime()-beg_t << " sec" << std::endl;
+  std::cerr << "Elapsed: " << gettime()-beg_t << " sec" << std::endl << std::endl;
+  std::cerr << "DONE" << std::endl;
   return 0;
 }
 
