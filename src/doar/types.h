@@ -36,6 +36,13 @@ namespace Doar {
   const Code CODE_LIMIT    = 0xFF;
   const Code TERMINAL_CODE = 0x00;
   const Code VACANT_CODE   = 0xFF;
+
+  namespace Status {
+    const int OPEN_FILE_FAILED    = -1;
+    const int INVALID_FILE_FORMAT = -2;
+    const int FILE_IS_CORRUPTED   = -3;
+    const int OK                  = 0;
+  }
 }
 
 #endif

@@ -96,14 +96,13 @@ extern "C" {
     const char* path=StringValuePtr(doar_index_file_path);
     new ((void*)ptr) Doar::Searcher(path);
 
-    // TODO: use name, error message
     switch(ptr->status) {
-    case 1:
+    case Doar::Status::OPEN_FILE_FAILED:
       rb_raise(rb_eArgError,"Can't open file: %s", path);
-    case 2:
+    case Doar::Status::INVALID_FILE_FORMAT:
       rb_raise(rb_eArgError,"This file isn't Doar index file: %s", path);
-    case 3:
-      rb_raise(rb_eArgError,"This index file is broken: %s", path);
+    case Doar::Status::FILE_IS_CORRUPTED:
+      rb_raise(rb_eArgError,"This index file is corrupted: %s", path);
     }
     
     return obj;

@@ -16,16 +16,16 @@ namespace Doar {
       Allocator alloca;
       KeyStreamList keys(filepath);
       if(!keys)
-	return 1;
+	return Status::OPEN_FILE_FAILED;
 
       // sort and uniquness check
       for(std::size_t i=0; i < keys.size()-1; i++) 
 	if(strcmp(keys[i].rest(), keys[i+1].rest()) >= 0)
-	  return 2;
+	  return Status::INVALID_FILE_FORMAT;
 
       init(keys.size());
       build_impl(keys,alloca,0,keys.size(),0);
-      return 0;
+      return Status::OK;
     }
 
     int build(const char** strs, uint32 str_count) {
@@ -35,12 +35,12 @@ namespace Doar {
       // sort and uniquness check
       for(std::size_t i=0; i < keys.size()-1; i++) 
 	if(strcmp(keys[i].rest(), keys[i+1].rest()) >= 0)
-	  return 2;
+	  return Status::INVALID_FILE_FORMAT;
       
       init(keys.size());
       
       build_impl(keys,alloca,0,keys.size(),0);
-      return 0;
+      return Status::OK;
     }
 
     void build(const BaseList& src_base, const ChckList& src_chck, const TindList& src_tind, const Tail& src_tail) {

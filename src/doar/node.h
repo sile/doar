@@ -12,7 +12,7 @@ namespace Doar {
     Base (const Base& src) : data(src.data){}
     
     NodeIndex base() const  { return data; }
-    TailIndex id()   const  { return data&0x7FFFFFFF; } 
+    uint32    id()   const  { return data&0x7FFFFFFF; } 
     NodeIndex next_index(Code cd) const  { return base()+cd; }
     bool is_leaf() const { return (data&0x80000000) != 0; }  
     

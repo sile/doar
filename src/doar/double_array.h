@@ -90,7 +90,7 @@ namespace Doar {
       
       // data validation
       {
-	if(strcmp(h.magic_s, MAGIC_STRING)!=0)
+	if(strncmp(h.magic_s, MAGIC_STRING, sizeof(h.magic_s))!=0)
 	  return 2;
 	
 	unsigned total_size = 

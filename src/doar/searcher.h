@@ -134,20 +134,19 @@ namespace Doar {
     Searcher(const char* filepath) : mm(filepath), status(init(filepath)) {}
 
 
-    operator    bool() const { return status==0; }
+    operator    bool() const { return status==Status::OK; }
     std::size_t size() const { return h.tind_size; }
     
   private:
     int init(const char* filepath) {
       if(!mm)
-	return 1;
-
+	return Status::OPEN_FILE_FAILED;
       memcpy(&h,mm.ptr,sizeof(Header));
 
       // data validation
       {
-	if(strcmp(h.magic_s, MAGIC_STRING)!=0)
-	  return 2;
+	if(strncmp(h.magic_s, MAGIC_STRING, sizeof(h.magic_s))!=0)
+	  return Status::INVALID_FILE_FORMAT;
 	
 	unsigned total_size = 
 	  sizeof(Header) + 
@@ -155,16 +154,15 @@ namespace Doar {
 	  sizeof(Base)*h.node_size + 
 	  sizeof(Chck)*h.node_size +
 	  sizeof(char)*h.tail_size;
-	
 	if(mm.size != total_size)
-	  return 3;
+	  return Status::FILE_IS_CORRUPTED;
       }
 
       tind = reinterpret_cast<const TailIndex*>(static_cast<char*>(mm.ptr)+sizeof(Header));
       base = reinterpret_cast<const Base*>(tind+h.tind_size);
       chck = reinterpret_cast<const Chck*>(base+h.node_size);
       tail = reinterpret_cast<const char*>(chck + h.node_size);
-      return 0;
+      return Status::OK;
     }
     
   private:
