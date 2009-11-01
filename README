@@ -1,7 +1,7 @@
 [概要]
 Doarは、DoubleArrayの構築・検索を行うためのC++ライブラリです。
 
-現在(2009/10/18)で実装されている機能は以下の通りです。
+現在(2009/11/1)で実装されている機能は以下の通りです。
  ・DoubleArrayの構築・保存
   ・ソート済みのキーセットから、DoubleArrayを構築  ※ 構築時の使用メモリ容量が少ない
   ・任意の順番のキーセットから、DoubleArrayを構築
@@ -13,9 +13,10 @@ Doarは、DoubleArrayの構築・検索を行うためのC++ライブラリで�
  ・Rubyバインディング  ※ 現在は、データ読込・検索のみ
 
 
+[環境]
+・現在は、sizeof(int)==4、となる環境を前提としています
+
 [移植性に関する注意]
-・以下の四点
-　・sizeof(int)!=32bit
 　・std::vector.data()
 　・mmap_t	
 　・バイトエンディアン
@@ -30,11 +31,10 @@ Doarは、DoubleArrayの構築・検索を行うためのC++ライブラリで�
 　・AMD64	Linux Kernel 2.6（Debian GNU/Linux 4.0 etch)
 
 [使い方]
-・makeでサンプルコマンドをコンパイル
-　・mkdoar:    DoubleArray構築コマンド  ※ ソート済みのファイルのみが対象
-　・mkddar:    DoubleArray構築コマンド  ※ 任意順のファイルに対応。 後でバージョンでmkdoarコマンドにマージする予定
-　・doar:      簡易検索コマンド (通常検索, common-prefix検索)
-　・doar_test: 構築したDoubleArrayのテスト & ベンチマークコマンド
+・ルートディレクトリでmakeを実行することで、サンプルコマンドがbin以下に作成されます 
+　・mkdoar: DoubleArray構築コマンド 
+　・doar:   簡易検索コマンド (通常検索, common-prefix検索)
+　・ckdoar: 構築したDoubleArrayのテスト & ベンチマークコマンド
 ・具体的な使い方は、src/comman/以下のファイルを参照してください
 
 
@@ -43,12 +43,17 @@ namespace Doar {
   //=== ファイル: src/doar/builder.h ===
   class Builder {
     // 引数のファイル(ソート済み)から、DoubleArrayを構築する
-    // ※ ソートされていないファイルが渡された場合の動作は未定義です
-    bool build(const char* filepath);
+    // [返り値]
+    // 成功: 0
+    // 失敗(ファイルオープン): -1
+    // 失敗(未ソートファイル): -2  ※ キーがユニークでは無い場合もこのエラーを返す
+    int build(const char* filepath);
 
     // 引数の文字列配列(ソート済み)から、DoubleArrayを構築する
-    // ※ ソートされていない配列が渡された場合の動作は未定義です
-    bool build(const char** strs, unsigned str_count);
+    // [返り値]
+    // 成功: 0
+    // 失敗(未ソート文字列配列): -2  ※ キーがユニークでは無い場合もこのエラーを返す
+    void build(const char** strs, unsigned str_count);
     
     // 引数のファイルにDoubleArrayを保存する
     bool save(const char* filepath);    
@@ -63,7 +68,7 @@ namespace Doar {
     unsigned id() const;
 
     // ノードが有効化どうかを返す
-    bool valid() const;
+    operator bool() const;
 
     // ノードが葉(終端)かどうかを返す
     bool is_leaf() const;
@@ -73,6 +78,16 @@ namespace Doar {
   class Searcher {
     // DoubleArrayを引数のファイルから読み込む
     Searcher(cosnt char* filepath);
+    
+    // (コンストラクタで)無事に読み込めた場合はtrueを返す
+    operator bool() const;
+
+    // コンストラクタ呼び出し後のSearcherの状態
+    // 0 : 検索可能
+    // -1: ファイルオープンに失敗
+    // -2: ファイルフォーマットが不正
+    // -3: ファイルが壊れている
+    const int status;
 
     // DoubleArrayに格納されているキー数を取得する
     unsigned size() const;
@@ -140,14 +155,16 @@ namespace Doar {
     // データを初期化する
     void clear();
 
-    // pathに構築したtrieデータを保存してから、データを初期化する
-    // saveメソッドに比べて使用メモリ量が少なくて済む。  ※ 現時点では最大で size()*2*8 byte程度の節約となる
-    bool save_and_clear(const char* path);
-
     // pathからtrieデータを読み込む
     // 読み込んだ後は、そのデータに対して、さらにinsertを行うことが可能
     //   ※ ただし、挿入効率は、ゼロから構築したtrieに比べて劣る
-    bool load(const char* path);
+    //
+    // [返り値]
+    // 0 : 成功
+    // -1: ファイルオープンに失敗
+    // -2: ファイルフォーマットが不正
+    // -3: ファイルが壊れている
+    int load(const char* path);
   }  
 }
 
@@ -164,14 +181,14 @@ trie = Doar::Searcher.new(".../doar.dat")
 trie.size  
 --> 1000000 # キー数
 
-trie.member?("形態素")  
+trie.key?("形態素")  
 --> true
 
 trie["形態素"] 
 --> 10  # ID
 
 trie["morpheme"]
---> nil # trie.member?("...")==falseの場合
+--> nil # trie.key?("...")==falseの場合
 
 trie.common_prefix_search("形態素")
 --> [[368117, 3], [368161, 6], [368162, 9]]  # [ID, 一致した文字列の位置]の配列

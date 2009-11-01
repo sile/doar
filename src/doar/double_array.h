@@ -77,13 +77,12 @@ namespace Doar {
 
     void clear() { init(); }
 
-    // TODO: use ENUM?
     int load(const char* path) {
       init();
       
       mmap_t mm(path);
       if(!mm) 
-	return 1;
+	return Status::OPEN_FILE_FAILED;
       
       Header h;
       memcpy(&h,mm.ptr,sizeof(Header));
@@ -91,7 +90,7 @@ namespace Doar {
       // data validation
       {
 	if(strncmp(h.magic_s, MAGIC_STRING, sizeof(h.magic_s))!=0)
-	  return 2;
+	  return Status::INVALID_FILE_FORMAT;
 	
 	unsigned total_size = 
 	  sizeof(Header) + 
@@ -101,7 +100,7 @@ namespace Doar {
 	  sizeof(char)*h.tail_size;
 	
 	if(mm.size != total_size)
-	  return 3;
+	  return Status::FILE_IS_CORRUPTED;
       }
 
       void* beg=static_cast<char*>(mm.ptr)+sizeof(Header);
@@ -111,7 +110,7 @@ namespace Doar {
       beg = assign(tail, static_cast<char*>(beg), h.tail_size);
 
       alloca.restore_condition(base.data(),chck.data(),h.node_size);
-      return 0;
+      return Status::OK;
     }
 
     /*********/
