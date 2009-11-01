@@ -1,11 +1,22 @@
+(defpackage :doar
+  (:use :common-lisp)
+  (:shadow :load :search)
+  (:export :doar
+           :load
+           :search
+           :common-prefix-search))
+(in-package :doar)
+
 (defstruct (searcher (:conc-name ""))
   (flag #*0 :type simple-bit-vector)     
   (tind #() :type (simple-array fixnum)) 
   (base #() :type (simple-array fixnum)) 
   (chck #() :type (simple-array (unsigned-byte 8)))
   (tail #() :type (simple-array (unsigned-byte 8))))
-(defun keyset-size (idx)
-  (length (tind idx)))
+
+(defun keyset-size (idx) (length (tind idx)))
+(defmethod print-object ((obj searcher) stream)
+  (format stream "#<SEACHER>"))
 
 ;;;;;;;;;;;;
 ;;; load ;;;
@@ -42,23 +53,15 @@
 ;;; search ;;;
 (defvar *fastest* '(optimize (speed 3) (debug 0) (compilation-speed 0) (safety 0)))
 (declaim (inline next-index get-id tail-index not-leaf? 
-                 key-exists? key-including?
-                 string-to-octets octets-to-string
-                 string-search)
+                 key-exists? key-including?)
          #.*fastest*)
 
-(defun string-to-octets (string)
-  #+sbcl  (sb-ext:string-to-octets string)
-  #+clisp (ext:convert-string-to-bytes string charset:utf-8))
-
-(defun octets-to-string (octets)
-  #+sbcl  (sb-ext:octets-to-string octets)
-  #+clisp (ext:convert-string-from-bytes octets charset:utf-8))
-
+(defmacro a.when (expr &body body)
+  `(let ((it ,expr))
+     (when it
+       ,@body)))
 
 (defmacro with-doar-abbrev ((doar) &body body)
-  ;; MEMO: もともとは、symbol-macroletを使っていたが、
-  ;;       構造体へのアクセスだけで、全体の1/4くらいの時間を使っていたので、letに変更した。
   `(let ((base (base ,doar)) (chck (chck ,doar))
          (tind (tind ,doar)) (tail (tail ,doar))
          (flag (flag ,doar)))
@@ -82,8 +85,8 @@
               (/= (aref key i) (aref tail j)))
       (return-from key-including? nil))))
        
-(declaim (ftype (function ((simple-array (unsigned-byte 8)) doar) (or NULL fixnum)) search))
-(defun search (key doar &aux (len (length key)))
+(declaim (ftype (function ((simple-array (unsigned-byte 8)) doar) (or NULL fixnum)) search-impl))
+(defun search-impl (key doar &aux (len (length key)))
   (with-doar-abbrev (doar)
     (let ((tail-len (length tail)))
       (do* ((i 0 (the fixnum (1+ i)))
@@ -96,23 +99,12 @@
         (unless (and (= code (aref chck next))
                      (cond ((not-leaf? next flag) t) ; next loop
                            ((key-exists? key (1+ i) len tail (tail-index node tind) tail-len)
-                            (return-from search (get-id node)))))
-          (return-from search nil))))))
+                            (return-from search-impl (get-id node)))))
+          (return-from search-impl nil))))))
 
-(defun string-search (string doar)
-  (search (string-to-octets string) doar))
-;; [ex]
-;; (defvar *doar* (load "/..."))
-;; (search (string-to-octets "日本") *doar*)
-;; --> 199297
-;; (string-search "日本" *doar*)
-;; --> 199297
-
-
-;; XXX: 未整理
 (declaim (ftype (function ((simple-array (unsigned-byte 8)) doar) list)
-                common-prefix-search))
-(defun common-prefix-search (key doar &aux (len (length key)) acc)
+                common-prefix-search-impl))
+(defun common-prefix-search-impl (key doar &aux (len (length key)) acc)
   (with-doar-abbrev (doar)
     (do* ((i 0 (the fixnum (1+ i)))
           (node (aref base 0))
@@ -126,12 +118,27 @@
         (push `(,i . ,(get-id (aref base #2#))) acc))
 
       (unless (= code (aref chck next))
-        (return-from common-prefix-search (nreverse acc)))
+        (return-from common-prefix-search-impl (nreverse acc)))
       (setf node (aref base next))  
       (unless (not-leaf? next flag)
         (a.when (key-including? key (1+ i) len tail (tail-index node tind))
           (push `(,it . ,(get-id node)) acc))
-        (return-from common-prefix-search (nreverse acc))))))
-;; [ex]
-;; (common-prefix-search (string-to-octets "日本") *doar*)
-;; --> ((3 . 198846) (6 . 199297))
+        (return-from common-prefix-search-impl (nreverse acc))))))
+
+;; public interface
+(declaim (inline search))
+
+;; -> id
+(defun search (key doar)
+  (search-impl (sb-ext:string-to-octets key) doar))
+ 
+;; ((end-pos . id))
+(defun common-prefix-search (key doar &key (start 0))
+  (declare (fixnum start)
+	   (simple-string key))
+  (let ((octets (sb-ext:string-to-octets key :start start)))
+    (loop FOR (end-pos . id) IN (common-prefix-search-impl octets doar) COLLECT
+      (cons (the fixnum 
+		 (+ start
+		    (length (sb-ext:octets-to-string octets :end end-pos))))
+	    id))))
