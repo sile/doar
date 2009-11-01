@@ -26,7 +26,7 @@
 (defun load (path)
   (with-open-file (in8 path :element-type '(unsigned-byte 8))
     (with-open-file (in32 path :element-type '(unsigned-byte 32))
-      (read-byte in32) (read-byte in32) ;XXX: magic-string
+      (read-byte in32) (read-byte in32)     ;; XXX: マジックストリングのチェックが省略されている
       (let* ((node-size #1=(read-byte in32))
              (tind-size #1#)
              (tail-size #1#)
@@ -135,10 +135,10 @@
 ;; ((end-pos . id))
 (defun common-prefix-search (key doar &key (start 0))
   (declare (fixnum start)
-	   (simple-string key))
+           (simple-string key))
   (let ((octets (sb-ext:string-to-octets key :start start)))
     (loop FOR (end-pos . id) IN (common-prefix-search-impl octets doar) COLLECT
       (cons (the fixnum 
-		 (+ start
-		    (length (sb-ext:octets-to-string octets :end end-pos))))
-	    id))))
+                 (+ start
+                    (length (sb-ext:octets-to-string octets :end end-pos))))
+            id))))
