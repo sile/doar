@@ -4,6 +4,7 @@
   (:export :doar
            :load
            :search
+	   :size
            :common-prefix-search))
 (in-package :doar)
 
@@ -14,7 +15,7 @@
   (chck #() :type (simple-array (unsigned-byte 8)))
   (tail #() :type (simple-array (unsigned-byte 8))))
 
-(defun keyset-size (idx) (length (tind idx)))
+(defun size (idx) (length (tind idx)))
 (defmethod print-object ((obj searcher) stream)
   (format stream "#<SEACHER>"))
 

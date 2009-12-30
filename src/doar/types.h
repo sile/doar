@@ -2,6 +2,8 @@
 #define DOAR_TYPES_H
 
 #include <string>
+#include <cstring>
+#include <cstdlib>
 #include "vector.h"
 
 // NOTE: G++ of a recent version has been implementing std::vector.data() method 
