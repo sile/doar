@@ -131,14 +131,14 @@ namespace Doar {
 
   class Searcher : public SearcherBase {
   public:
-    Searcher(const char* filepath) : mm(filepath), status(init(filepath)) {}
+    Searcher(const char* filepath) : mm(filepath), status(init()) {}
 
 
     operator    bool() const { return status==Status::OK; }
     std::size_t size() const { return h.tind_size; }
     
   private:
-    int init(const char* filepath) {
+    int init() {
       if(!mm)
 	return Status::OPEN_FILE_FAILED;
       memcpy(&h,mm.ptr,sizeof(Header));
