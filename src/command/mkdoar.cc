@@ -74,7 +74,7 @@ int main(int argc, char** argv) {
     if(source_index_file) {
       beg_t = gettime();
       std::cerr << "=== Load from " << source_index_file << " ===" << std::endl;
-      if(trie.load(source_index_file)==false) {
+      if(trie.load(source_index_file)!=Doar::Status::OK) {
 	std::cerr << "Load failed" << std::endl;
 	return 1;
       }
