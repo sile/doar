@@ -18,7 +18,7 @@ namespace Doar {
       if(!keys)
 	return Status::OPEN_FILE_FAILED;
 
-      // sort and uniquness check
+      // sort and uniqueness check
       for(std::size_t i=0; i < keys.size()-1; i++) 
 	if(strcmp(keys[i].rest(), keys[i+1].rest()) >= 0)
 	  return Status::INVALID_FILE_FORMAT;
