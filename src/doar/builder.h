@@ -52,6 +52,14 @@ namespace Doar {
     }
 
     bool save(const char* filepath, bool do_shrink_tail=true) {
+      return Builder::save(base,chck,tind,tail,filepath,do_shrink_tail);
+    }
+
+    std::size_t size() const { return tind.size(); }
+
+  public:
+    static bool save(BaseList& base, ChckList& chck, TindList& tind, Tail& tail,
+		     const char* filepath, bool do_shrink_tail=true) {
       FILE *f;
       if((f=fopen(filepath,"wb"))==NULL)
 	return false;
@@ -81,8 +89,6 @@ namespace Doar {
       return true;
     }
 
-    std::size_t size() const { return tind.size(); }
-    
   private:
     // Build trie from KeyStreamList
     void build_impl(KeyStreamList& keys, Allocator& alloca, std::size_t beg, std::size_t end, NodeIndex root_idx) {

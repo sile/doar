@@ -6,6 +6,7 @@
 #include "static_allocator.h"
 #include "shrink_tail.h"
 #include "key_stream.h"
+#include "builder.h"
 #include <algorithm>
 
 namespace Doar {
@@ -51,33 +52,7 @@ namespace Doar {
     }
 
     bool save(const char* filepath, bool do_shrink_tail=true) {
-      FILE *f;
-      if((f=fopen(filepath,"wb"))==NULL)
-	return false;
-      
-      if(do_shrink_tail)
-	ShrinkTail(tail,tind).shrink();
-      
-      // get size
-      Header h={{'\0'},
-		static_cast<uint32>(chck.size()),
-		static_cast<uint32>(tind.size()),
-		static_cast<uint32>(tail.size())};
-      memcpy(h.magic_s,MAGIC_STRING,8);
-
-      for(; h.node_size > 0 && !chck[h.node_size-1].in_use(); h.node_size--);
-      h.node_size += CODE_LIMIT; // NOTE: append padding area (for safe no check access on search time)
-
-      base.resize(h.node_size);
-      chck.resize(h.node_size);
-
-      fwrite(&h, sizeof(Header), 1, f);
-      fwrite(tind.data(), sizeof(uint32), h.tind_size, f);
-      fwrite(base.data(), sizeof(Base), h.node_size, f);
-      fwrite(chck.data(), sizeof(Chck), h.node_size, f);
-      fwrite(tail.data(), sizeof(char), h.tail_size, f);
-      fclose(f);
-      return true;
+      return Builder::save(base,chck,tind,tail,filepath,do_shrink_tail);
     }
 
     std::size_t size() const { return tind.size(); }
