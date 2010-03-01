@@ -50,7 +50,6 @@ namespace Doar {
   class Chck {
   public:    
     Chck() : data(VACANT_CODE) {}
-    
     bool in_use() const { return data!=VACANT_CODE; }
     bool trans_by(Code cd) const { return cd==data; }
 

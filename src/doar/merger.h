@@ -18,10 +18,13 @@ namespace Doar {
 
       const unsigned id_offset;
 
-      // XXX: name , platform check
-      void free() {
+      void free_unnecessary_memory() {
+#if defined(WIN32) || defined(WIN64)
+#else
+	// free tind and tail
         mremap(mm.ptr,mm.size,mm.size-h.tail_size,0);
 	munmap(mm.ptr,floar_pagesize(sizeof(Header)+sizeof(TailIndex)*h.tind_size));
+#endif
       }
 
     private:
@@ -53,8 +56,9 @@ namespace Doar {
       
       tail.append(doar1.tail, doar1.header().tail_size);
       tail.append(doar2.tail, doar2.header().tail_size);
-      doar1.free();
-      doar2.free();
+
+      doar1.free_unnecessary_memory();
+      doar2.free_unnecessary_memory();
 
       Allocator alloca;
       merge_doarXdoar(doar1,doar1.base[0], 

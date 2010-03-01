@@ -2,7 +2,6 @@
 #include "../doar/merger.h"
 #include "../util/gettime.h"
 
-// TODO: help message
 int main(int argc, char** argv) {
   if(argc != 4) {
     std::cerr << "Usage: merge-doar <source-index-file-1> <source-index-file-2> <output-index-file>" << std::endl;
