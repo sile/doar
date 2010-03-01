@@ -5,7 +5,7 @@
 
 int main(int argc, char** argv) {
   if(argc < 3) {
-    std::cerr <<"Usage: "<<basename(argv[0])<<" <index-file> <word-list-file> [loop-count]" << std::endl;
+    std::cerr <<"Usage: ckdoar <index-file> <word-list-file> [loop-count]" << std::endl;
     return 1;
   }
   

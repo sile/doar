@@ -31,7 +31,7 @@ typedef void (*PRINT_FN_TYPE)(const char*,unsigned,unsigned);
 
 int main(int argc, char** argv) {
   if(argc != 2) {
-    std::cerr <<"Usage: "<<argv[0]<<" <doar-index-file>" << std::endl;
+    std::cerr <<"Usage: doar <doar-index-file>" << std::endl;
     return 1;
   }
 

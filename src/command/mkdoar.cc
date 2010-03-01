@@ -7,7 +7,7 @@
 // TODO: help message
 int main(int argc, char** argv) {
   if(argc < 2) {
-    std::cerr <<"Usage: "<< basename(argv[0])
+    std::cerr <<"Usage: mkdoar "
 	      <<" [--extend=[source-index-file]] [--conc-static] [--help #no implemented]"
 	      <<" <output-index-file> [input-words-file]" << std::endl;
     return 1;
