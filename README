@@ -1,12 +1,13 @@
 [概要]
 Doarは、DoubleArrayの構築・検索を行うためのC++ライブラリです。
 
-現在(2009/11/1)で実装されている機能は以下の通りです。
+現在(2010/03/01)で実装されている機能は以下の通りです。
  ・DoubleArrayの構築・保存
   ・ソート済みのキーセットから、DoubleArrayを構築  ※ 構築時の使用メモリ容量が少ない
   ・任意の順番のキーセットから、DoubleArrayを構築
   ・構築したDoubleArrayをファイルに保存
   ・一度保存したデータを読み込んで、更新(要素追加)、再保存
+  ・保存した二つのDoubleArrayインデックスのマージ
  ・上で作成したDoubleArrayデータから、キーを検索する
  ・各キーを、0から始まるユニークなIDにマッピング (IDは挿入順で割り振られる)
 
@@ -35,6 +36,7 @@ Doarは、DoubleArrayの構築・検索を行うためのC++ライブラリで�
 　・mkdoar: DoubleArray構築コマンド 
 　・doar:   簡易検索コマンド (通常検索, common-prefix検索)
 　・ckdoar: 構築したDoubleArrayのテスト & ベンチマークコマンド
+　・merge-douar: DoubleArrayマージコマンド
 ・具体的な使い方は、src/comman/以下のファイルを参照してください
 
 
@@ -166,6 +168,17 @@ namespace Doar {
     // -3: ファイルが壊れている
     int load(const char* path);
   }  
+
+  //=== ファイル: src/doar/merger.h ===
+  class Merger {
+    // path1とpath2のDoubleArrayインデックスをマージする
+    // 返り値は、DoubleArray::loadメソッドのそれと同様
+    int merge(const char* path1, const char* path2);
+
+    // filepathに構築したtrieデータを保存する
+    // do_shrink_tailがtrueの場合は、TAIL配列の圧縮を行ってから保存される
+    bool save(const char* filepath, bool do_shrink_tail=true);
+  }
 }
 
 
@@ -212,5 +225,5 @@ trie.each("日本"){|id, key| # "日本"で始める全てのキーをiterate
 
 [TODO]
 ・ポータビリティ向上
-・削除機能 (検討)
-・キーに対応する任意の4byte値を格納可能にする
+・削除機能 (検討)                           => おそらく実装しない(2010/03/01)
+・キーに対応する任意の4byte値を格納可能にする  => おそらく実装しない(2010/03/01)
