@@ -5,9 +5,9 @@ INCLUDE_DIR=/usr/local/include
 
 DOAR=src/doar
 CMD=src/command
-HEADERS=${DOAR}/key_stream.h ${DOAR}/node.h ${DOAR}/searcher.h ${DOAR}/types.h ${DOAR}/static_allocator.h ${DOAR}/dynamic_allocator.h ${DOAR}/double_array.h ${DOAR}/shrink_tail.h ${DOAR}/builder.h ${DOAR}/vector.h
+HEADERS=${DOAR}/key_stream.h ${DOAR}/node.h ${DOAR}/searcher.h ${DOAR}/types.h ${DOAR}/static_allocator.h ${DOAR}/dynamic_allocator.h ${DOAR}/double_array.h ${DOAR}/shrink_tail.h ${DOAR}/builder.h ${DOAR}/loader.h ${DOAR}/merger.h ${DOAR}/vector.h
 
-all: bin/doar bin/mkdoar bin/ckdoar
+all: bin/doar bin/mkdoar bin/ckdoar bin/merge-doar
 
 bin/doar: ${CMD}/doar.cc ${HEADERS}
 	${CXX} ${CXXFLAGS} -o ${@} ${CMD}/doar.cc
@@ -17,6 +17,9 @@ bin/ckdoar: ${CMD}/ckdoar.cc ${HEADERS}
 
 bin/mkdoar: ${CMD}/mkdoar.cc ${HEADERS}
 	${CXX} ${CXXFLAGS} -o ${@} ${CMD}/mkdoar.cc
+
+bin/merge-doar: ${CMD}/merge-doar.cc ${HEADERS}
+	${CXX} ${CXXFLAGS} -o ${@} ${CMD}/merge-doar.cc
 
 install: bin/doar bin/mkdoar bin/ckdoar
 	cp bin/* ${INSTALL_DIR}/

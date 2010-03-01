@@ -20,8 +20,13 @@ namespace Doar {
 
       // XXX: name , platform check
       void free() {
-	munmap(ptr+sizeof(Header)+sizeof(TailIndex)*h.tind_size+sizeof(Base)*h.node_size+sizeof(Chck)*h.node_size, sizeof(char)*h.tail_size);
-	munmap(ptr,sizeof(Header)+sizeof(TailIndex)*h.tind_size);
+        mremap(mm.ptr,mm.size,mm.size-h.tail_size,0);
+	munmap(mm.ptr,floar_pagesize(sizeof(Header)+sizeof(TailIndex)*h.tind_size));
+      }
+
+    private:
+      std::size_t floar_pagesize(std::size_t size) {
+	return size-size%sysconf(_SC_PAGESIZE);
       }
     };
   }
@@ -31,11 +36,11 @@ namespace Doar {
 
   public:
     int merge(const char* filepath1, const char* filepath2) {
-      const Loader2 doar1(filepath1, 0);
+      Loader2 doar1(filepath1, 0);
       if(!doar1)
 	return doar1.status;
 
-      const Loader2 doar2(filepath2, doar1.size());
+      Loader2 doar2(filepath2, doar1.size());
       if(!doar2)
 	return doar2.status;
       
