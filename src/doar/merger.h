@@ -17,6 +17,12 @@ namespace Doar {
 	: Loader(filepath), id_offset(id_offset) {}
 
       const unsigned id_offset;
+
+      // XXX: name , platform check
+      void free() {
+	munmap(ptr+sizeof(Header)+sizeof(TailIndex)*h.tind_size+sizeof(Base)*h.node_size+sizeof(Chck)*h.node_size, sizeof(char)*h.tail_size);
+	munmap(ptr,sizeof(Header)+sizeof(TailIndex)*h.tind_size);
+      }
     };
   }
 
@@ -42,6 +48,8 @@ namespace Doar {
       
       tail.append(doar1.tail, doar1.header().tail_size);
       tail.append(doar2.tail, doar2.header().tail_size);
+      doar1.free();
+      doar2.free();
 
       Allocator alloca;
       merge_doarXdoar(doar1,doar1.base[0], 

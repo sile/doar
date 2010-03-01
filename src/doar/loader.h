@@ -6,7 +6,6 @@
 #include "mmap_t.h"
 
 namespace Doar {
-  // TODO: use Loader in Searcher
   class Loader {
   public:
     Loader(const char* filepath) : mm(filepath), status(init(filepath)) {}
@@ -44,7 +43,7 @@ namespace Doar {
       return Status::OK;
     }
     
-  private:
+  protected:
     const mmap_t mm;
     Header h;
 
