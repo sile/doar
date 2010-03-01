@@ -5,6 +5,7 @@
 #include "key_stream.h"
 #include "node.h"
 #include "mmap_t.h"
+#include "loader.h"
 
 namespace Doar {
   class SearcherBase {
@@ -108,9 +109,7 @@ namespace Doar {
 
     Node root_node() const { return base[0]; }
 
-  protected:
-    SearcherBase() : base(NULL), chck(NULL), tind(NULL), tail(NULL) {}
-    
+  private:
     bool key_exists(const KeyStream in, const Base n) const {
       return strcmp(in.rest(), tail+tind[n.id()])==0;
     }
@@ -122,52 +121,43 @@ namespace Doar {
       return strncmp(in.rest(), ptr, len)==0;
     }
    
-  protected:
-    const Base*      base; // BASE array
-    const Chck*      chck; // CHECK array
-    const TailIndex* tind; // TAIL index array
-    const char*      tail; // TAIL array
+  private:
+    const Base*      const base; // BASE array
+    const Chck*      const chck; // CHECK array
+    const TailIndex* const tind; // TAIL index array
+    const char*      const tail; // TAIL array
   };
 
-  class Searcher : public SearcherBase {
+  class Searcher {
   public:
-    Searcher(const char* filepath) : mm(filepath), status(init()) {}
+    Searcher(const char* filepath) 
+      : doar(filepath), 
+	srch(doar.base, doar.chck, doar.tind, doar.tail),
+	status(doar.status) {}
 
+    operator    bool() const { return doar; }
+    std::size_t size() const { return doar.size(); }
 
-    operator    bool() const { return status==Status::OK; }
-    std::size_t size() const { return h.tind_size; }
-    
+    Node search(const char* key) const { return srch.search(key); }
+    Node search(const char* key, Node& root_node) const { return srch.search(key, root_node); }
+
+    template<typename Callback>
+    void each_common_prefix(const char* key, const Callback& fn) const 
+    { return srch.each_common_prefix(key,fn); }
+
+    template<typename Callback>
+    void each_common_prefix(const char* key, Node root_node, const Callback& fn) const 
+    { return srch.each_common_prefix(key,root_node,fn); }
+
+    template<typename Callback>
+    void each_child(Node parent, const Callback& fn) const 
+    { return srch.each_child(parent,fn); }
+
+    Node root_node() const { return srch.root_node(); }
+
   private:
-    int init() {
-      if(!mm)
-	return Status::OPEN_FILE_FAILED;
-      memcpy(&h,mm.ptr,sizeof(Header));
-
-      // data validation
-      {
-	if(strncmp(h.magic_s, MAGIC_STRING, sizeof(h.magic_s))!=0)
-	  return Status::INVALID_FILE_FORMAT;
-	
-	unsigned total_size = 
-	  sizeof(Header) + 
-	  sizeof(TailIndex)*h.tind_size +
-	  sizeof(Base)*h.node_size + 
-	  sizeof(Chck)*h.node_size +
-	  sizeof(char)*h.tail_size;
-	if(mm.size != total_size)
-	  return Status::FILE_IS_CORRUPTED;
-      }
-
-      tind = reinterpret_cast<const TailIndex*>(static_cast<char*>(mm.ptr)+sizeof(Header));
-      base = reinterpret_cast<const Base*>(tind+h.tind_size);
-      chck = reinterpret_cast<const Chck*>(base+h.node_size);
-      tail = reinterpret_cast<const char*>(chck + h.node_size);
-      return Status::OK;
-    }
-    
-  private:
-    const mmap_t mm;
-    Header h;
+    const Loader doar;
+    const SearcherBase srch;
 
   public:
     const int status;
