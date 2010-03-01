@@ -28,9 +28,12 @@ namespace Doar {
       }
 
     private:
+#if defined(WIN32) || defined(WIN64)
+#else
       std::size_t floar_pagesize(std::size_t size) {
 	return size-size%sysconf(_SC_PAGESIZE);
       }
+#endif
     };
   }
 
