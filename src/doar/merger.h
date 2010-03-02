@@ -22,8 +22,15 @@ namespace Doar {
 #if defined(WIN32) || defined(WIN64)
 #else
 	// free tind and tail
-        mremap(mm.ptr,mm.size,mm.size-h.tail_size,0);
-	munmap(mm.ptr,floar_pagesize(sizeof(Header)+sizeof(TailIndex)*h.tind_size));
+        // XXX:
+        mmap_t& m = const_cast<mmap_t&>(mm);
+        m.ptr = mremap(m.ptr,m.size,m.size-h.tail_size,0);
+        m.size -= h.tail_size;
+
+        unsigned head_size = floar_pagesize(sizeof(Header)+sizeof(TailIndex)*h.tind_size);
+        munmap(m.ptr, head_size);
+        m.ptr = static_cast<void*>(static_cast<char*>(m.ptr)+head_size);
+        m.size -= head_size;
 #endif
       }
 
