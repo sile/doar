@@ -41,6 +41,7 @@ namespace Wakame {
       
       // XXX: for dev
       //     未知語用: 検索用のキーを追加しないところ以外は普通の単語と同様
+      // XXX: この方法だと、単語辞書に'KANJI'などのエントリがあった場合に、衝突が起こるのでは?(2010//03/08)
       while((line=unk_rl.read())) {
 	if(ws_ary.size()%500==0)
 	  std::cout << ws_ary.size() << std::endl;
