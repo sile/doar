@@ -88,6 +88,9 @@ namespace Wakame {
 	std::size_t p4 = s.find(',',p3+1);
 	dout << s.substr(p4+1) << '\0';   // TODO: zip?
 	
+	// XXX: dataとdata_indexのこの関連づけは危険 => w[data_index] ~ w[data_index+1]
+	//    : Wordがdoutで出力された順番と異なる順番で書き出された場合に整合性が崩れる
+	//    : 同じ単語が連接して定義されていない場合に、そのようなことが起こるはず(2010/03/08)
 	Word w(atoi(s.substr(p1+1,p2).c_str()),
 	       atoi(s.substr(p2+1,p3).c_str()),
 	       atoi(s.substr(p3+1,p4).c_str()),
