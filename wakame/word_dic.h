@@ -41,7 +41,6 @@ namespace Wakame {
       
       // XXX: for dev
       //     未知語用: 検索用のキーを追加しないところ以外は普通の単語と同様
-      // XXX: この方法だと、単語辞書に'KANJI'などのエントリがあった場合に、衝突が起こるのでは?(2010//03/08)
       while((line=unk_rl.read())) {
 	if(ws_ary.size()%500==0)
 	  std::cout << ws_ary.size() << std::endl;
@@ -130,6 +129,7 @@ namespace Wakame {
 	f = fopen((odir+"/word.dat").c_str(),"wb");
 	for(std::size_t i=0; i < ws_ary.size(); i++)
 	  fwrite(ws_ary[i].data(),sizeof(Word),ws_ary[i].size(),f);
+	// TODO: 一番最後にもう一つwordを追加しておかないと、index_of_infoを使うときに範囲外になる可能性がある(2010/03/08)
 	fclose(f);
       }
 	     
