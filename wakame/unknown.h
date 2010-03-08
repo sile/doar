@@ -31,6 +31,7 @@ namespace Wakame {
       //
       bool b=true;
       // TODO: NULLチェックはなくしたい
+      // XXX: この方法だと、例えばlength=2,group=0の文字が、textの末尾にある場合に、NULLチェックにより追加されなくなっていしまうのでは?(2010/03/08)
       for(unsigned i=0; *cur!='\0' && i < cc.length; i++) {
 	wd.get_from_id(cc.id,cur-text,result);
 	//cout << "@" << cur << endl;
