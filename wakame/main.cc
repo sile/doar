@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
     NodesArray nsary(len+1);
 
     nsary[0].push_front(Wakame::BOS_EOS_WORD,0);
-    for(size_t i=0; i < nsary.size(); i++) {
+    for(size_t i=0; i < nsary.size(); i++) { // i < nsary.size()-1でも大丈夫? (2010/03/09)
       
       if(nsary[i].empty()==false) {
 	const Wakame::MorphemeNodes& prevs = nsary[i];
