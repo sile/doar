@@ -24,7 +24,8 @@ namespace Doar {
 	  return Status::INVALID_FILE_FORMAT;
 
       init(keys.size());
-      build_impl(keys,alloca,0,keys.size(),0);
+      if(keys.size()!=0)
+	build_impl(keys,alloca,0,keys.size(),0);
       return Status::OK;
     }
 
@@ -38,8 +39,8 @@ namespace Doar {
 	  return Status::INVALID_FILE_FORMAT;
       
       init(keys.size());
-      
-      build_impl(keys,alloca,0,keys.size(),0);
+      if(keys.size()!=0)      
+	build_impl(keys,alloca,0,keys.size(),0);
       return Status::OK;
     }
 
@@ -48,7 +49,8 @@ namespace Doar {
       init(src_tind.size());
       tind=src_tind;
       tail=src_tail;
-      build_impl(src_base,src_chck,alloca,src_base[0],0);
+      if(src_tind.size()!=0)
+	build_impl(src_base,src_chck,alloca,src_base[0],0);
     }
 
     bool save(const char* filepath, bool do_shrink_tail=true) {
