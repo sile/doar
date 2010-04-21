@@ -72,7 +72,7 @@ namespace Doar {
 		static_cast<uint32>(chck.size()),
 		static_cast<uint32>(tind.size()),
 		static_cast<uint32>(tail.size())};
-      memcpy(h.magic_s,MAGIC_STRING,8);
+      memcpy(h.magic_s,DOAR_MAGIC_STRING,8);
 
       for(; h.node_size > 0 && !chck[h.node_size-1].in_use(); h.node_size--);
       h.node_size += CODE_LIMIT; // NOTE: append padding area (for safe no check access on search time)

@@ -13,6 +13,8 @@
 # define VECTOR_HAS_MEMBER_NAMED_DATA
 #endif
 
+#define DOAR_MAGIC_STRING "doar-000"
+
 namespace Doar {
   // NOTE: Please redefine 32bit(4byte) unsigned integer type
   //       if sizeof(unsigned) != 4 on your environment.
@@ -26,8 +28,7 @@ namespace Doar {
   typedef Vector<Code>      CodeList;
   typedef Vector<TailIndex> TindList;  // Tail INDex List
   typedef std::string       Tail;
-  
-  const char* MAGIC_STRING="doar-000";
+
   struct Header {
     char magic_s[8];  // 'doar-xxx'
     uint32 node_size; // BASE and CHECK array size

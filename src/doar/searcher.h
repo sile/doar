@@ -24,13 +24,13 @@ namespace Doar {
 	if(chck[idx].trans_by(cd))
 	  if(!node.is_leaf())                      continue;
 	  else if(in.eos() || key_exists(in,node)) return node;
-	return Node::INVALID;
+	return INVALID;
       }
     }
     
     Node search(const char* key, Node& root_node) const {
       if(root_node.is_leaf())
-	return Node::INVALID;
+	return INVALID;
       
       Base node = root_node;
       KeyStream in(key); 
@@ -42,7 +42,7 @@ namespace Doar {
 	  if(!node.is_leaf())           continue;
 	  else if(in.eos())             return node;
 	  else if(key_exists(in, node)) return root_node=node;
-	return Node::INVALID;
+	return INVALID;
       } 
     }
 
@@ -120,7 +120,10 @@ namespace Doar {
       key_offset += static_cast<uint32>(len) + 1;
       return strncmp(in.rest(), ptr, len)==0;
     }
-   
+
+  protected:
+    const Node INVALID;
+    
   private:
     const Base*      const base; // BASE array
     const Chck*      const chck; // CHECK array

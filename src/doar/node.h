@@ -39,11 +39,7 @@ namespace Doar {
   private:
     friend class SearcherBase;
     Node(Base b) : Base(b) {}
-    
-  public:
-    static const Node INVALID;
   };
-  const Node Node::INVALID = Node();
   
   /********/
   /* Chck */

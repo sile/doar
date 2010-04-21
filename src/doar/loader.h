@@ -23,7 +23,7 @@ namespace Doar {
 
       // data validation
       {
-	if(strncmp(h.magic_s, MAGIC_STRING, sizeof(h.magic_s))!=0)
+	if(strncmp(h.magic_s, DOAR_MAGIC_STRING, sizeof(h.magic_s))!=0)
 	  return Status::INVALID_FILE_FORMAT;
 	
 	unsigned total_size = 
