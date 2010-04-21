@@ -144,9 +144,9 @@ namespace Doar {
     Node search(const char* key) const;
     Node search(const char* key, Node &root_node) const;
     template <typename Callback>
-    void common_prefix_search(const char* key, Callback& fn) const;
+    void each_common_prefix(const char* key, Callback& fn) const;
     template <typename Callback>
-    void common_prefix_search(const char* key, Node root_node, Callback& fn) const;
+    void each_common_prefix(const char* key, Node root_node, Callback& fn) const;
     template <typename Callback>
     void children(Node parent, const Callback& fn) const;
 
