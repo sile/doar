@@ -32,7 +32,7 @@ namespace Doar {
       assert(init_size > 1);
       
       lnk.clear();
-      lnk.push_back(Link(0,0));
+      lnk.push_back(Link(0,1));
       resize_link(init_size);
       
       bset.clear();
@@ -46,7 +46,7 @@ namespace Doar {
       init(static_cast<uint32>(node_size*1.5));
 
       for(NodeIndex i=0; i < node_size; i++) {
-	// NOTE: Below expression depends on (or assume) the condition that Node::INVALID.is_leaf() return true.
+	// NOTE: Below expression depends on (or assume) the condition that Node::Node().is_leaf() return true.
 	if(!base[i].is_leaf())  
 	  bset[base[i].base()]=true;
 	
@@ -61,7 +61,7 @@ namespace Doar {
     }
 
     void alloc(NodeIndex node) {
-      while (node >= lnk.size()-1) // invariant: lnk[lnk.size()-1].next==0
+      while (node >= lnk.size())
 	resize_link();
 
       if(node==beg_idx)
@@ -136,13 +136,11 @@ namespace Doar {
     }
 
     void resize_link(NodeIndex hint=0) {
-      lnk.back().next=static_cast<uint32>(lnk.size());
       NodeIndex end = max(hint,static_cast<NodeIndex>(lnk.size()*2));
       bset.resize(end);
 
       for(NodeIndex i=static_cast<NodeIndex>(lnk.size()); i < end; i++) 
 	lnk.push_back(Link(i-1,i+1));
-      lnk.back().next=0;  // invariant: lnk[lnk.size()-1].next==0
     }
 
     void alloc_impl(NodeIndex node) {
