@@ -28,24 +28,6 @@ namespace Doar {
       }
     }
     
-    Node search(const char* key, Node& root_node) const {
-      if(root_node.is_leaf())
-	return INVALID;
-      
-      Base node = root_node;
-      KeyStream in(key); 
-      for(Code cd=in.read();; cd=in.read(), root_node=node) {
-	const NodeIndex idx = node.next_index(cd);
-	node = base[idx];
-	
-	if(chck[idx].trans_by(cd))
-	  if(!node.is_leaf())           continue;
-	  else if(in.eos())             return node;
-	  else if(key_exists(in, node)) return root_node=node;
-	return INVALID;
-      } 
-    }
-
     template<typename Callback>
     void each_common_prefix(const char* key, const Callback& fn) const {
       Node node = root_node();
@@ -142,7 +124,6 @@ namespace Doar {
     std::size_t size() const { return doar.size(); }
 
     Node search(const char* key) const { return srch.search(key); }
-    Node search(const char* key, Node& root_node) const { return srch.search(key, root_node); }
 
     template<typename Callback>
     void each_common_prefix(const char* key, const Callback& fn) const 

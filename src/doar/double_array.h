@@ -51,7 +51,6 @@ namespace Doar {
     /* search */
     Node root_node() const { return srch().root_node(); }
     Node search(const char* key) const { return srch().search(key); }
-    Node search(const char* key, Node& root_node) const { return srch().search(key,root_node); }
     
     template<typename Callback>
     void each_common_prefix(const char* key, Node root_node, const Callback& fn) const
