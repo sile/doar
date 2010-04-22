@@ -54,11 +54,15 @@ namespace Doar {
     
     template<typename Callback>
     void each_common_prefix(const char* key, Node root_node, const Callback& fn) const
-    { return srch().each_common_prefix(key,root_node,fn); }
+    { srch().each_common_prefix(key,root_node,fn); }
 
     template<typename Callback>
     void each_common_prefix(const char* key, const Callback& fn) const
-    { return srch().each_common_prefix(key,fn); }
+    { srch().each_common_prefix(key,fn); }
+
+    template<typename CustomKeyStream, typename Callback>
+    void each_common_prefix(CustomKeyStream& in, const Callback& fn) const 
+    { srch().each_common_prefix(in, fn); }
 
     template<typename Callback>
     void each_child(Node parent, const Callback& fn) const { return srch().each_child(parent,fn); }

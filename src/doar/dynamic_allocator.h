@@ -61,7 +61,7 @@ namespace Doar {
     }
 
     void alloc(NodeIndex node) {
-      while (node >= lnk.size())
+      while (node >= lnk.size()-1)
 	resize_link();
 
       if(node==beg_idx)

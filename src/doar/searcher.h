@@ -77,6 +77,30 @@ namespace Doar {
       }      
     }  
 
+    // CustomKeyStream require two methods
+    //  - read(): read one code from stream. If end of stream reached, must return TERMINAL_CODE.
+    //  - including(const char* tail): a predicate method. If tail is included in the rest of this stream, return true.
+    template<typename CustomKeyStream, typename Callback>
+    void each_common_prefix(CustomKeyStream& in, const Callback& fn) const {
+      Node node = root_node();
+
+      for(Code cd=in.read();; cd=in.read()){
+	const NodeIndex terminal_idx = node.next_index(TERMINAL_CODE);
+	if(chck[terminal_idx].trans_by(TERMINAL_CODE)) {
+	  fn(in, base[terminal_idx].id());
+	  if(cd==TERMINAL_CODE)
+	    return;
+	}
+	
+	const NodeIndex idx = node.next_index(cd);
+	node = base[idx];
+	if(chck[idx].trans_by(cd))
+	  if(!node.is_leaf())                         continue;
+	  else if(in.including(tail+tind[node.id()])) fn(in, node.id());
+	return;
+      }      
+    }       
+
     template<typename Callback>
     void each_child(Node parent, const Callback& fn) const {
       if(parent.is_leaf())
@@ -127,11 +151,15 @@ namespace Doar {
 
     template<typename Callback>
     void each_common_prefix(const char* key, const Callback& fn) const 
-    { return srch.each_common_prefix(key,fn); }
+    { srch.each_common_prefix(key,fn); }
 
     template<typename Callback>
     void each_common_prefix(const char* key, Node root_node, const Callback& fn) const 
-    { return srch.each_common_prefix(key,root_node,fn); }
+    { srch.each_common_prefix(key,root_node,fn); }
+
+    template<typename CustomKeyStream, typename Callback>
+    void each_common_prefix(CustomKeyStream& in, const Callback& fn) const 
+    { srch.each_common_prefix(in, fn); }
 
     template<typename Callback>
     void each_child(Node parent, const Callback& fn) const 
