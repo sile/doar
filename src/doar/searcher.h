@@ -181,5 +181,72 @@ namespace Doar {
   public:
     const int status;
   };
+
+  class OnMemorySearcher {
+  public:
+    OnMemorySearcher(const Base* base, const Chck* chck, unsigned node_size,
+		     const TailIndex* tind, unsigned tind_size, 
+		     const char* tail, unsigned tail_size) 
+      : data(base,chck,node_size,tind,tind_size,tail,tail_size), 
+	srch(data.base,data.chck,data.tind,data.tail) {}
+    
+    std::size_t size() const { return data.tind_size; }
+    
+    Node search(const char* key) const { return srch.search(key); }
+
+    template<typename Callback>
+    void each_common_prefix(const char* key, const Callback& fn) const 
+    { srch.each_common_prefix(key,fn); }
+
+    template<typename Callback>
+    void each_common_prefix(const char* key, Node root_node, const Callback& fn) const 
+    { srch.each_common_prefix(key,root_node,fn); }
+
+    template<typename CustomKeyStream, typename Callback>
+    void each_common_prefix(CustomKeyStream& in, const Callback& fn) const 
+    { srch.each_common_prefix(in, fn); }
+
+    template<typename Callback>
+    void each_child(Node parent, const Callback& fn) const 
+    { return srch.each_child(parent,fn); }
+
+    Node root_node() const { return srch.root_node(); }   
+
+  private:
+    struct Data {
+      Data(const Base* base, const Chck* chck, unsigned node_size,
+	   const TailIndex* tind, unsigned tind_size, 
+	   const char* tail, unsigned tail_size) 
+	: node_size(node_size), tind_size(tind_size), tail_size(tail_size) {
+	this->base = new Base[node_size];
+	this->chck = new Chck[node_size];
+	this->tind = new TailIndex[tind_size];
+	this->tail = new char[tail_size];
+
+	memcpy(this->base, base, node_size*sizeof(Base));
+	memcpy(this->chck, chck, node_size*sizeof(Chck));
+	memcpy(this->tind, tind, tind_size*sizeof(TailIndex));
+	memcpy(this->tail, tail, tail_size*sizeof(char));
+      }
+      ~Data() {
+	delete [] base;
+	delete [] chck;
+	delete [] tind;
+	delete [] tail;
+      }
+
+      unsigned node_size; // base and chck size
+      unsigned tind_size; // tind size
+      unsigned tail_size; // tail size
+
+      Base*      base;
+      Chck*      chck;
+      TailIndex* tind;
+      char*      tail;
+    };
+  private:
+    const Data data;
+    const SearcherBase srch;
+  };
 }
 #endif

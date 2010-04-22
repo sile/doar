@@ -10,6 +10,7 @@
 namespace Doar {
   class Builder {
     typedef StaticAllocator Allocator;
+    friend class DoubleArray;
     
   public:
     int build(const char* filepath) {
@@ -26,6 +27,7 @@ namespace Doar {
       init(keys.size());
       if(keys.size()!=0)
 	build_impl(keys,alloca,0,keys.size(),0);
+      adjust_nodes();
       return Status::OK;
     }
 
@@ -41,6 +43,7 @@ namespace Doar {
       init(keys.size());
       if(keys.size()!=0)      
 	build_impl(keys,alloca,0,keys.size(),0);
+      adjust_nodes();
       return Status::OK;
     }
 
@@ -51,6 +54,7 @@ namespace Doar {
       tail=src_tail;
       if(src_tind.size()!=0)
 	build_impl(src_base,src_chck,alloca,src_base[0],0);
+      adjust_nodes();
     }
 
     bool save(const char* filepath, bool do_shrink_tail=true) {
@@ -75,12 +79,6 @@ namespace Doar {
 		static_cast<uint32>(tind.size()),
 		static_cast<uint32>(tail.size())};
       memcpy(h.magic_s,DOAR_MAGIC_STRING,8);
-
-      for(; h.node_size > 0 && !chck[h.node_size-1].in_use(); h.node_size--);
-      h.node_size += CODE_LIMIT; // NOTE: append padding area (for safe no check access on search time)
-
-      base.resize(h.node_size);
-      chck.resize(h.node_size);
 
       fwrite(&h, sizeof(Header), 1, f);
       fwrite(tind.data(), sizeof(uint32), h.tind_size, f);
@@ -156,6 +154,15 @@ namespace Doar {
       tind.push_back(tail.size());
       tail += in.rest();
       tail += '\0';
+    }
+
+    void adjust_nodes() {
+      unsigned node_size = chck.size();
+      for(; node_size > 0 && !chck[node_size-1].in_use(); node_size--);
+      node_size += CODE_LIMIT; // NOTE: append padding area (for safe no check access on search time)
+      
+      base.resize(node_size);
+      chck.resize(node_size);
     }
 
     // XXX: There is room for change.

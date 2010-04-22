@@ -78,6 +78,16 @@ namespace Doar {
       return bld.save(path,false);
     }
 
+    const OnMemorySearcher* make_searcher() {
+      ShrinkTail(tail,tind).shrink();
+
+      Builder bld;
+      bld.build(base,chck,tind,tail);
+      return new OnMemorySearcher(bld.base.data(), bld.chck.data(), bld.base.size(),
+				  bld.tind.data(), bld.tind.size(),
+				  bld.tail.data(), bld.tail.size());
+    }
+
     void clear() { init(); }
 
     int load(const char* path) {
