@@ -46,6 +46,8 @@ namespace Doar {
     const int FILE_IS_CORRUPTED   = -3;
     const int OK                  = 0;
   }
+
+  inline Code char2code(char ch) { return static_cast<unsigned char>(ch); }
 }
 
 #endif

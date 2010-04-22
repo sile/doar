@@ -77,9 +77,8 @@ namespace Doar {
       }      
     }  
 
-    // CustomKeyStream require two methods
+    // CustomKeyStream require following method
     //  - read(): read one code from stream. If end of stream reached, must return TERMINAL_CODE.
-    //  - including(const char* tail): a predicate method. If tail is included in the rest of this stream, return true.
     template<typename CustomKeyStream, typename Callback>
     void each_common_prefix(CustomKeyStream& in, const Callback& fn) const {
       Node node = root_node();
@@ -96,7 +95,7 @@ namespace Doar {
 	node = base[idx];
 	if(chck[idx].trans_by(cd))
 	  if(!node.is_leaf())                         continue;
-	  else if(in.including(tail+tind[node.id()])) fn(in, node.id());
+	  else if(key_including(in, node)) fn(in, node.id());
 	return;
       }      
     }       
@@ -127,6 +126,14 @@ namespace Doar {
       return strncmp(in.rest(), ptr, len)==0;
     }
 
+    template<typename CustomKeyStream>
+    bool key_including(CustomKeyStream& in, const Base n) const {
+      const char* p=tail+tind[n.id()];
+      for(; *p != '\0'; ++p)
+	if(char2code(*p) != in.read())
+	  return false;
+      return true;
+    }
   protected:
     const Node INVALID;
     
