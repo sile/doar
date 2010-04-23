@@ -163,6 +163,9 @@ namespace Doar {
       
       base.resize(node_size);
       chck.resize(node_size);
+
+      if(tind.size()==0)
+	base[0].set_base(0);
     }
 
     // XXX: There is room for change.

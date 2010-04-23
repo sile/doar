@@ -89,13 +89,13 @@ namespace Doar {
       lnk[idx].next = cur;
     }
     
-    // NOTE: This method assume that variable codes is already sorted.
     NodeIndex x_check(const CodeList& codes) {
       assert(beg_idx>=CODE_LIMIT);
-      
       NodeIndex cur = lnk[beg_idx].next;
-      for(uint32 cnt=0;;  cur=lnk[cur].next, cnt++) {
+      for(uint32 cnt=0;; cur=lnk[cur].next, cnt++) {
 	assert(cur);
+	if(cur==lnk.size()) 
+	  resize_link(lnk.size()*2);
 	
 	NodeIndex x = cur-codes.front();
 	if(!bset[x] && can_allocate(codes, x)) {
