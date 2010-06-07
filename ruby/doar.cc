@@ -156,10 +156,15 @@ extern "C" {
     if(root_str==Qnil) {
       ptr->each_child(ptr->root_node(), YieldAllKey(*ptr));
     } else {
+      /*
+      # ver-0.1.xでは、rootノード付きのsearchメソッドがないので、コメントアウト
+      # ↑のsearchメソッドには欠陥があった
+      #  - TAIL文字列の途中まで一致があった場合に、その情報を保存しておく方法がなかった
       Doar::Node root=ptr->root_node();
       const char* base = StringValuePtr(root_str);
       ptr->search(base,root);
       ptr->each_child(root, YieldAllKey(*ptr, omit_base==Qtrue?"":base));
+      */
     }
     return Qnil;
   }
