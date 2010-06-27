@@ -66,6 +66,12 @@ namespace Doar {
     // NOTE: This method assume that variable codes is already sorted.
     NodeIndex x_check(const CodeList& codes, ForwardLink* prev=NULL) {
       if(!prev) prev=&root;
+      if(!prev->next) {
+	last_idx = prev->append(last_idx+1, PER_LINK_SIZE);
+	if(last_idx >= bset.size())
+	  bset.resize(bset.size()*2);
+      }
+      
       ForwardLink *cur = prev->next;
       Code min_cd = codes.front();
       
@@ -81,10 +87,6 @@ namespace Doar {
 	  return x;
 	}
       }
-      last_idx = cur->append(last_idx+1, PER_LINK_SIZE);
-      
-      if(last_idx >= bset.size())
-	bset.resize(bset.size()*2);
       
       return x_check(codes, cur);
     }
