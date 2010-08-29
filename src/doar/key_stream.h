@@ -3,6 +3,7 @@
 
 #include "types.h"
 #include <vector>
+#include <cstdio>
 
 namespace Doar {
   class KeyStream {
